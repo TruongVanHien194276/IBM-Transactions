@@ -1,0 +1,101 @@
+KỊCH BẢN BẢO VỆ 15 PHÚT
+IBM AML TRANSACTIONS – CLOUD DATA PIPELINE TRÊN AWS
+
+Mục tiêu: nói như một Data Engineer đang trình bày một business case và kiến trúc PoC.
+Nguyên tắc: không nói pipeline AWS đã chạy hoàn chỉnh. Phần đã làm thật là pipeline local, dashboard Power BI, S3 bucket/prefix và Glue database. Crawler bị lỗi quyền tài khoản.
+
+TỔNG THỜI GIAN: 15 PHÚT
+- Mở bài: 45 giây
+- Business problem + insight: 4 phút 30 giây
+- Pipeline/technology AWS: 6 phút 30 giây
+- Roadmap, trạng thái và kết luận: 2 phút 30 giây
+- Dự phòng chuyển slide/gián đoạn: 45 giây
+
+SLIDE 1 – MỞ ĐẦU (0:00–0:35)
+Lời nói:
+“Em xin trình bày project IBM AML Transactions dưới góc nhìn Data Engineer. Bài toán của em là biến một nguồn dữ liệu gần 32 triệu giao dịch thành một data product có thể kiểm soát, truy vấn và trực quan hóa. Phần cloud em đề xuất ở mức basic: Amazon S3, AWS Glue, Data Catalog, Athena và Power BI; không viết PySpark thủ công.”
+Chuyển ý: “Trước khi nói công nghệ, em bắt đầu từ vấn đề business.”
+
+SLIDE 2 – BUSINESS PROBLEM (0:35–1:15)
+Lời nói:
+“Đội AML và quản lý cần biết kênh nào có rủi ro cao, giao dịch nào cần ưu tiên điều tra và dữ liệu có đủ tin cậy để ra quyết định hay không. Nếu chỉ để ở CSV hoặc Excel, file rất lớn, logic KPI dễ khác nhau và khó tái lập. Vì vậy yêu cầu không chỉ là vẽ dashboard, mà phải chuẩn hóa pipeline từ raw đến dữ liệu phục vụ phân tích.”
+Nhấn mạnh: “Cloud là phương tiện để giải quyết vấn đề quản trị và mở rộng dữ liệu, không phải mục tiêu tự thân.”
+
+SLIDE 3 – QUY MÔ VÀ RARE EVENT (1:15–2:00)
+Lời nói:
+“Nguồn có 31.898.238 giao dịch trong 28 ngày, 2.087.786 tài khoản và 122.333 ngân hàng. Chỉ có 35.230 giao dịch được gắn nhãn AML, tương đương 0,1104%. Đây là rare event. Vì vậy nếu sau này làm Machine Learning thì accuracy đơn thuần sẽ gây hiểu nhầm; còn trong project hiện tại em luôn trình bày cả số lượng và tỷ lệ.”
+Nếu thầy hỏi nguồn số: “Các số được đối chiếu từ source_profile.json và các bảng profile của project.”
+
+SLIDE 4 – INSIGHT ACH (2:00–2:50)
+Lời nói:
+“Insight nổi bật nhất là ACH. Kênh này chỉ chiếm 12,13% tổng volume nhưng chứa 87,27% giao dịch AML. Tỷ lệ AML trong ACH là 0,7948%, cao khoảng 7,2 lần mức chung. Hàm ý business là không dùng một ngưỡng chung cho mọi kênh; cần ưu tiên rule, sampling và điều tra theo ACH.”
+Lưu ý: “Em nói ‘ưu tiên điều tra’, không nói mọi giao dịch ACH là bất thường.”
+
+SLIDE 5 – CROSS-BANK VÀ PATTERN (2:50–3:45)
+Lời nói:
+“91,20% giao dịch là liên ngân hàng, nên lineage giữa bank nguồn và bank đích là trọng tâm. Self-transfer chiếm 8,03%, có thể dùng để xây rule riêng cho vòng lặp. Trong tập pattern, GATHER-SCATTER, SCATTER-GATHER và STACK chiếm 53,92% pattern transactions. Đây là ba nhóm ưu tiên cho drill-down và điều tra.”
+Chuyển ý: “Nhưng trước khi tin insight, Data Engineer phải kiểm tra chất lượng dữ liệu.”
+
+SLIDE 6 – DATA QUALITY (3:45–4:35)
+Lời nói:
+“Volume giảm mạnh sau ngày 16/09. Em không kết luận business giảm giao dịch, mà coi đây là dấu hiệu completeness hoặc source window. Ngoài ra có 1,52% giao dịch khác currency. Vì chưa có FX rate nên không được cộng amount danh nghĩa giữa các loại tiền. Pipeline cần kiểm tra row count, min/max date, duplicate, orphan và reconciliation theo ngày.”
+
+SLIDE 7 – TỪ LOCAL ĐẾN AWS (4:35–5:10)
+Lời nói:
+“Hiện tại em đã dùng CSV, Python/SQL, PostgreSQL Data Warehouse và Power BI. Project không dùng SSIS. Trong kiến trúc AWS, S3 thay lớp lưu trữ file tập trung, Glue thay phần catalog và transformation cơ bản, Athena là query engine serverless, Power BI tiếp tục là lớp trình bày.”
+
+SLIDE 8 – KIẾN TRÚC AWS TỔNG THỂ (5:10–6:05)
+Lời nói:
+“Luồng dữ liệu đi từ CSV vào S3 raw. Glue Crawler đọc metadata và ghi định nghĩa bảng vào Data Catalog. Glue Visual ETL kéo-thả để cast kiểu, đổi tên, tạo cột dẫn xuất, validate và ghi Parquet vào S3 curated. Athena dùng SQL trên curated; Power BI đọc lớp view/KPI. CloudWatch và Glue Workflow/Trigger phục vụ vận hành.”
+Chỉ từng khối từ trái sang phải, không đọc nguyên văn slide.
+
+SLIDE 9 – THIẾT KẾ S3 (6:05–6:45)
+Lời nói:
+“Em tách raw, curated, temporary và athena-results. Raw giữ nguyên nguồn để audit; curated là dữ liệu đã chuẩn hóa. Transactions, accounts và patterns có prefix riêng. Dữ liệu curated ghi Parquet Snappy và partition theo thời gian để Athena chỉ quét phần cần thiết.”
+Nhấn mạnh: “S3 là data lake/object storage, không phải database quan hệ.”
+
+SLIDE 10 – CRAWLER VÀ DATA CATALOG (6:45–7:30)
+Lời nói:
+“Crawler không biến đổi dữ liệu; nó phát hiện schema và location rồi đăng ký table trong Data Catalog. Em dùng database ibm_aml_raw và ba include path. Sau khi crawl vẫn phải kiểm tra header, delimiter, data type và schema drift. Catalog là metadata dùng chung cho Glue và Athena.”
+
+SLIDE 11 – VISUAL ETL (7:30–8:20)
+Lời nói:
+“Visual ETL phù hợp mức basic vì em thiết kế bằng node kéo-thả, không viết PySpark. Các node chính là source, Change Schema, Derived Column, Filter/Validate, Join và S3 target. Tuy nhiên phía sau Glue vẫn sinh job Spark. Output phải là Parquet, có partition, có reject path và đối soát số dòng.”
+
+SLIDE 12 – STAR SCHEMA (8:20–9:05)
+Lời nói:
+“Lớp curated được tổ chức theo star schema: fact_transaction ở grain một dòng một giao dịch, liên kết dim_account, dim_date, dim_payment_format, dim_currency; pattern dùng bridge vì một pattern liên kết nhiều giao dịch. Mô hình này giúp KPI nhất quán và Power BI không phải tự join raw.”
+
+SLIDE 13 – ATHENA VÀ BI (9:05–9:55)
+Lời nói:
+“Athena là query engine serverless, đọc table definition từ Glue Catalog và dữ liệu từ S3. Em sẽ tạo view cho daily volume, AML theo payment format, cross-bank và pattern summary. Power BI chỉ đọc view curated, không đọc raw. Nhờ vậy logic được quản lý tại data layer thay vì lặp lại trong mỗi biểu đồ.”
+
+SLIDE 14 – VẬN HÀNH, BẢO MẬT, CHI PHÍ (9:55–10:50)
+Lời nói:
+“Ở vận hành, mỗi run có run_id, row count trước/sau, thời gian và trạng thái. IAM áp dụng least privilege; S3 giữ Block Public Access và encryption. CloudWatch lưu log và cảnh báo job fail. Athena tính phí theo bytes scanned, Glue theo tài nguyên và thời gian, nên Parquet, partition và chạy sample trước là các kiểm soát chi phí quan trọng.”
+
+SLIDE 15 – ROADMAP VÀ DEMO (10:50–11:45)
+Lời nói:
+“Em triển khai theo năm chặng: local baseline, S3 landing, Catalog, Visual ETL, Athena/BI. Mỗi chặng có gate: schema đúng, data quality đạt và KPI khớp số local. Trong demo, em sẽ đi từ kiến trúc, S3 prefix, Glue database, flow Visual ETL, câu lệnh Athena rồi quay lại dashboard để chứng minh business value.”
+
+SLIDE 16 – TRẠNG THÁI THỰC TẾ (11:45–12:45)
+Lời nói:
+“Em xin trình bày trung thực trạng thái. Local DW và Power BI đã hoàn thành. Trên AWS em đã tạo bucket ibm-aml-basic-huydungle-20260819, các prefix và Glue database ibm_aml_raw. Khi tạo crawler, tài khoản trả về ‘Account 739515567332 is denied access’, nên em chưa chạy end-to-end. Phần AWS trong bài là proposed architecture và kế hoạch PoC. Nếu được mở quyền, bước tiếp theo là chạy crawler, Visual ETL sample, đối soát Athena với local rồi mới chạy full.”
+Không xin lỗi dài; biến lỗi thành bài học về IAM/SCP/lab policy và vận hành cloud.
+
+SLIDE 17 – KẾT LUẬN (12:45–14:15)
+Lời nói:
+“Kết luận, business cần ưu tiên ACH, giao dịch liên ngân hàng và ba pattern nổi bật. Dưới góc nhìn Data Engineer, giá trị của project là biến file thành data product có raw–curated zone, catalog, chất lượng dữ liệu, mô hình serving và khả năng quan sát. S3, Glue và Athena là lựa chọn phù hợp cho PoC serverless cơ bản; Power BI là lớp tiêu thụ. Em không tuyên bố AWS đã chạy hoàn chỉnh, nhưng kiến trúc, control và tiêu chí nghiệm thu đã được thiết kế đủ rõ để triển khai khi tài khoản được cấp quyền.”
+Chốt: “Em xin kết thúc phần trình bày và sẵn sàng trả lời câu hỏi.”
+
+14:15–15:00 – DỰ PHÒNG
+- Nếu còn thời gian: nhắc lại 3 con số 87,27% AML ở ACH; 91,20% cross-bank; top 3 pattern chiếm 53,92%.
+- Nếu bị ngắt giữa chừng: bỏ bớt chi tiết slide 9–12, giữ slide 16 và kết luận.
+
+CHECKLIST TRƯỚC KHI BẢO VỆ
+1. Mở sẵn PPTX và dashboard 4K.
+2. Mở sẵn ảnh S3 prefix/Glue database/lỗi quyền nếu cần chứng minh.
+3. Không đăng nhập hoặc nhập mật khẩu AWS trước lớp.
+4. Không nói “đã deploy” nếu crawler/job/Athena chưa chạy thành công.
+5. Nhớ ba insight chính và ba giới hạn: rare label, thiếu FX, completeness sau 16/09.
+6. Khi bị hỏi sâu, trả lời theo cấu trúc: quyết định → lý do → kiểm soát → giới hạn.
