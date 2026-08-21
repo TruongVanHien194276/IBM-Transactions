@@ -1,0 +1,25 @@
+POWER BI SERVICE – IBM AML
+==========================
+
+Workspace:
+https://app.powerbi.com/groups/7f5002d5-ed84-4dfb-891e-ee0622f7824b/list?experience=power-bi
+
+Report:
+https://app.powerbi.com/groups/7f5002d5-ed84-4dfb-891e-ee0622f7824b/reports/de81f7bf-e511-4ab5-8269-8ef80bcb22b1/4c7468e18d15410ac20d?experience=power-bi
+
+Workspace: IBM AML Transactions DW
+Semantic model: IBM AML Transactions Semantic Model
+Report: IBM AML Transactions Dashboard
+Visible page: IBM AML - Unified Dashboard
+
+Yeu cau:
+- Dang nhap bang dung tai khoan Microsoft cua truong.
+- Can Internet de mo report cloud.
+- Chon View > Fit to width va cuon doc qua 6 KPI cung 7 khu vuc 01-07.
+- Neu khong mo duoc, dung anh evidence va slide 18-23 trong PowerPoint.
+
+Luu y:
+- PostgreSQL local la nguon chuan.
+- Power BI Service dang dung snapshot OneDrive da doi soat.
+- Bao cao cloud-only khong tao file PBIX.
+- 8 trang cu dang bi an, khong phai 8 trang can chuyen khi demo.

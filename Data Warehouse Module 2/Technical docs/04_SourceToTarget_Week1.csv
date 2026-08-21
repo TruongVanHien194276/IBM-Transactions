@@ -1,0 +1,18 @@
+source_file,source_column,target_table,target_column,target_type,transformation,validation
+HI-Medium_accounts.csv,Bank Name,raw.account,bank_name,text,btrim,NOT NULL
+HI-Medium_accounts.csv,Bank ID,raw.account,raw_bank_id,text,btrim,NOT NULL
+HI-Medium_accounts.csv,Bank ID,raw.account,bank_id,text,bigint then text,Digits only
+HI-Medium_accounts.csv,Account Number,raw.account,account_number,text,upper and btrim,NOT NULL
+HI-Medium_accounts.csv,Entity ID,raw.account,entity_id,text,upper and btrim,Nullable
+HI-Medium_accounts.csv,Entity Name,raw.account,entity_name,text,btrim,Nullable
+HI-Medium_Trans.csv,Timestamp,raw.transactions,transaction_timestamp,timestamp without time zone,to_timestamp YYYY/MM/DD HH24:MI,Regex and parse
+HI-Medium_Trans.csv,From Bank,raw.transactions,from_bank_id,text,bigint then text,Digits only
+HI-Medium_Trans.csv,Account first,raw.transactions,from_account_id,text,upper and btrim,NOT NULL
+HI-Medium_Trans.csv,To Bank,raw.transactions,to_bank_id,text,bigint then text,Digits only
+HI-Medium_Trans.csv,Account second,raw.transactions,to_account_id,text,upper and btrim,NOT NULL
+HI-Medium_Trans.csv,Amount Received,raw.transactions,amount_received,"numeric(24,8)",cast after numeric regex,Must parse
+HI-Medium_Trans.csv,Receiving Currency,raw.transactions,receiving_currency,text,btrim,NOT NULL
+HI-Medium_Trans.csv,Amount Paid,raw.transactions,amount_paid,"numeric(24,8)",cast after numeric regex,Must parse
+HI-Medium_Trans.csv,Payment Currency,raw.transactions,payment_currency,text,btrim,NOT NULL
+HI-Medium_Trans.csv,Payment Format,raw.transactions,payment_format,text,btrim,NOT NULL
+HI-Medium_Trans.csv,Is Laundering,raw.transactions,is_laundering,boolean,0=false and 1=true,IN 0 or 1

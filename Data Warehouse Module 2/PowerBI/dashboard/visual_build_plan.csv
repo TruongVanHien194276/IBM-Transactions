@@ -1,0 +1,47 @@
+Page,VisualID,VisualType,Title,CategoryAxis,Legend,ValuesOrMeasure,FilterOrNote
+01_Executive_Overview,KPI01,Card,Total Transactions,,,Overall Transactions,Overall fixed KPI
+01_Executive_Overview,KPI02,Card,Laundering Transactions,,,Overall Laundering Transactions,Overall fixed KPI
+01_Executive_Overview,KPI03,Card,AML Rate,,,Overall AML Rate %,Format 0.00%
+01_Executive_Overview,KPI04,Card,Cross-bank Rate,,,Overall Cross-bank Rate %,Format 0.00%
+01_Executive_Overview,KPI05,Card,Cross-currency Rate,,,Overall Cross-currency Rate %,Format 0.00%
+01_Executive_Overview,KPI06,Card,Self-transfer Rate,,,Overall Self-transfer Rate %,Format 0.00%
+01_Executive_Overview,CH01,Line chart,Transaction Trend,dim_date[full_date],,Transactions,
+01_Executive_Overview,CH02,Clustered column chart,AML by Payment Format,dim_payment_format[payment_format],,Laundering Transactions,
+01_Executive_Overview,SL01,Slicer,Date,dim_date[full_date],,,Between
+01_Executive_Overview,SL02,Slicer,Payment Currency,dim_payment_currency[payment_currency],,,Dropdown
+01_Executive_Overview,SL03,Slicer,Payment Format,dim_payment_format[payment_format],,,Dropdown
+02_Transaction_Trend,KPI01,Card,Filtered Transactions,,,Transactions,Responds to slicers
+02_Transaction_Trend,KPI02,Card,Filtered AML,,,Laundering Transactions,Responds to slicers
+02_Transaction_Trend,KPI03,Card,Filtered AML Rate,,,AML Rate %,Format 0.00%
+02_Transaction_Trend,CH01,Line chart,Transactions and AML by Date,dim_date[full_date],,Transactions; Laundering Transactions,
+02_Transaction_Trend,CH02,Line chart,Cumulative Transactions,dim_date[full_date],,Cumulative Transactions,
+02_Transaction_Trend,CH03,Clustered bar chart,Transactions by Format,dim_payment_format[payment_format],,Transactions,
+02_Transaction_Trend,TB01,Table,Daily Detail,dim_date[full_date],,Transactions; Laundering Transactions; AML Rate %,
+03_AML_Risk,KPI01,Card,AML Transactions,,,Laundering Transactions,
+03_AML_Risk,KPI02,Card,AML Rate,,,AML Rate %,Format 0.00%
+03_AML_Risk,CH01,Column chart,AML by Payment Format,dim_payment_format[payment_format],,Laundering Transactions,
+03_AML_Risk,CH02,Line chart,AML Trend,dim_date[full_date],,Laundering Transactions,
+03_AML_Risk,TB01,Table,Top Risk Accounts,fact_aml_account_risk[account_number],,AML Account Sent Participations; AML Account Received Participations; AML Account Participations; AML Account Risk Rank,Top N 20
+04_Bank_Activity,KPI01,Card,Total Bank Participations,,,Bank Total Participations,Participation is not unique transactions
+04_Bank_Activity,KPI02,Card,AML Participations,,,Bank AML Participations,
+04_Bank_Activity,CH01,Clustered bar chart,Top Banks by Activity,dim_bank[bank_name],,Bank Total Participations,Top N 15
+04_Bank_Activity,CH02,Stacked column chart,Sent vs Received,dim_bank[bank_name],,Bank Sent Participations; Bank Received Participations,Top N 15
+04_Bank_Activity,TB01,Table,Bank Ranking,dim_bank[bank_name],,Bank Activity Rank; Bank Total Participations; Bank AML Participations; Bank AML Participation Rate %,Top N 50
+05_Currency_Flow,KPI01,Card,Flow Transactions,,,Currency Flow Transactions,
+05_Currency_Flow,KPI02,Card,Flow AML Rate,,,Currency Flow AML Rate %,Format 0.00%
+05_Currency_Flow,MX01,Matrix,Currency Flow Matrix,dim_payment_currency[payment_currency],dim_receiving_currency[receiving_currency],Currency Flow Transactions,Conditional background color
+05_Currency_Flow,CH01,Clustered bar chart,Top Currency Pairs,dim_payment_currency[payment_currency],dim_receiving_currency[receiving_currency],Currency Flow Transactions,
+05_Currency_Flow,TB01,Table,Currency Pair Detail,dim_payment_currency[payment_currency],dim_receiving_currency[receiving_currency],Currency Flow Transactions; Currency Flow Laundering; Currency Flow AML Rate %,
+06_Laundering_Pattern,KPI01,Card,Pattern Attempts,,,Pattern Attempts,
+06_Laundering_Pattern,KPI02,Card,Pattern Transactions,,,Pattern Transactions,
+06_Laundering_Pattern,KPI03,Card,Transactions per Attempt,,,Transactions per Pattern Attempt,
+06_Laundering_Pattern,CH01,Clustered bar chart,Pattern Transactions,dim_pattern_type[pattern_type],,Pattern Transactions,
+06_Laundering_Pattern,CH02,Column chart,Attempts by Pattern,dim_pattern_type[pattern_type],,Pattern Attempts,
+06_Laundering_Pattern,TB01,Table,Pattern Detail,dim_pattern_type[pattern_type],,Pattern Rank; Pattern Attempts; Pattern Transactions; Transactions per Pattern Attempt,
+07_ETL_Data_Quality,KPI01,Card,ETL Batches,,,ETL Batch Count,
+07_ETL_Data_Quality,KPI02,Card,Failed Batches,,,ETL Failed Batches,Red conditional color if >0
+07_ETL_Data_Quality,KPI03,Card,Rejected Rows,,,ETL Rejected Rows,Red conditional color if >0
+07_ETL_Data_Quality,KPI04,Card,Validation Pass Rate,,,Validation Pass Rate %,Format 0.00%
+07_ETL_Data_Quality,TB01,Table,Batch History,etl_batch_monitor[dw_batch_id],,etl_batch_monitor[load_type]; etl_batch_monitor[status]; etl_batch_monitor[duration_minutes]; etl_batch_monitor[transaction_rows_inserted]; etl_batch_monitor[rejected_rows]; etl_batch_monitor[validation_status],Sort batch descending
+07_ETL_Data_Quality,TB02,Table,Validation Detail,etl_validation_result[check_name],,etl_validation_result[source_value]; etl_validation_result[target_value]; etl_validation_result[difference_value]; etl_validation_result[status],Filter by selected batch
+

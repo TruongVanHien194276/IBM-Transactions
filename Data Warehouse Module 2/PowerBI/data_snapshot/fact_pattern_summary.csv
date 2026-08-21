@@ -1,0 +1,9 @@
+pattern_type_key,attempt_count,pattern_transaction_count,min_sequence,max_sequence
+1,345,2128,1,16
+2,355,2315,1,16
+3,322,4289,1,31
+4,336,3986,1,30
+5,369,2135,1,15
+6,367,2235,1,13
+7,331,1667,1,12
+8,331,3988,1,32

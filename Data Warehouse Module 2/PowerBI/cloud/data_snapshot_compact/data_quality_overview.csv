@@ -1,0 +1,2 @@
+latest_batch_id,latest_load_type,latest_batch_status,latest_validation_status,latest_completed_at,latest_rejected_rows,validation_batch_id,validation_check_count,validation_passed_count,validation_failed_count
+4,INCREMENTAL,COMPLETED,PASSED,2026-07-22 22:23:29.439728+07,0,3,9,9,0

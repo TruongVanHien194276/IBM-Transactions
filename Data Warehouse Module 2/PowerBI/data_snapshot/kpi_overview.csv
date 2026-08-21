@@ -1,0 +1,2 @@
+overview_key,transaction_count,laundering_count,laundering_rate_percent,cross_bank_count,cross_currency_count,self_transfer_count,min_transaction_date,max_transaction_date
+1,31898238,35230,0.110445,29092624,485144,2561860,2022-09-01,2022-09-28

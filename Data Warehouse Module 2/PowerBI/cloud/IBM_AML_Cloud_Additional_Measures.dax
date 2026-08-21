@@ -1,0 +1,163 @@
+// 18 measures đã được tạo trực tiếp trong IBM AML Transactions Semantic Model.
+// VALUE() giúp semantic model xử lý ổn định cả khi Excel suy luận cột numeric là text.
+
+Total Transactions =
+SUMX(
+    'tbl_fact_daily_transaction',
+    VALUE('tbl_fact_daily_transaction'[transaction_count])
+)
+
+AML Transactions =
+SUMX(
+    'tbl_fact_daily_transaction',
+    VALUE('tbl_fact_daily_transaction'[laundering_count])
+)
+
+Total Amount Paid =
+SUMX(
+    'tbl_fact_daily_transaction',
+    VALUE('tbl_fact_daily_transaction'[total_amount_paid])
+)
+
+AML by Format =
+SUMX(
+    'tbl_fact_aml_payment_format',
+    VALUE('tbl_fact_aml_payment_format'[laundering_count])
+)
+
+Bank Participations =
+SUMX(
+    'tbl_fact_bank_activity',
+    VALUE('tbl_fact_bank_activity'[total_participations])
+)
+
+Bank AML Participations =
+SUMX(
+    'tbl_fact_bank_activity',
+    VALUE('tbl_fact_bank_activity'[laundering_participations])
+)
+
+Currency Transactions =
+SUMX(
+    'tbl_fact_currency_flow',
+    VALUE('tbl_fact_currency_flow'[transaction_count])
+)
+
+Currency AML Transactions =
+SUMX(
+    'tbl_fact_currency_flow',
+    VALUE('tbl_fact_currency_flow'[laundering_count])
+)
+
+Pattern Attempts =
+SUMX(
+    'tbl_fact_pattern_summary',
+    VALUE('tbl_fact_pattern_summary'[attempt_count])
+)
+
+Pattern Transactions =
+SUMX(
+    'tbl_fact_pattern_summary',
+    VALUE('tbl_fact_pattern_summary'[pattern_transaction_count])
+)
+
+Account AML Participations =
+SUMX(
+    'tbl_fact_aml_account_risk',
+    VALUE('tbl_fact_aml_account_risk'[laundering_participations])
+)
+
+Validation Difference =
+SUMX(
+    'tbl_etl_validation_result',
+    VALUE('tbl_etl_validation_result'[difference_value])
+)
+
+Overview Transactions =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[transaction_count])
+)
+
+Overview Laundering =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[laundering_count])
+)
+
+Overview AML Rate =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[laundering_rate_percent])
+)
+
+Overview Cross Bank =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[cross_bank_count])
+)
+
+Overview Cross Currency =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[cross_currency_count])
+)
+
+Overview Self Transfer =
+MAXX(
+    'tbl_kpi_overview',
+    VALUE('tbl_kpi_overview'[self_transfer_count])
+)
+
+// Measures mở rộng tùy chọn khi tiếp tục hoàn thiện model.
+
+Non-Laundering Transactions =
+[Transactions] - [Laundering Transactions]
+
+Daily Transaction Change =
+[Transactions] - [Previous Day Transactions]
+
+Daily Transaction Change Color =
+IF(
+    [Daily Transaction Change] >= 0,
+    "#15803D",
+    "#C93C4A"
+)
+
+Bank Non-AML Participations =
+[Bank Total Participations] - [Bank AML Participations]
+
+Currency Flow Non-Laundering =
+[Currency Flow Transactions] - [Currency Flow Laundering]
+
+Latest Batch Status =
+VAR LatestId = [Latest Batch ID]
+RETURN
+    CALCULATE(
+        SELECTEDVALUE(etl_batch_monitor[status]),
+        etl_batch_monitor[dw_batch_id] = LatestId
+    )
+
+Latest Validation Status =
+VAR LatestId = [Latest Batch ID]
+RETURN
+    CALCULATE(
+        SELECTEDVALUE(etl_batch_monitor[validation_status]),
+        etl_batch_monitor[dw_batch_id] = LatestId
+    )
+
+ETL Status Color =
+IF(
+    [ETL Failed Batches] = 0
+        && [ETL Rejected Rows] = 0
+        && [Validation Failed] = 0,
+    "#15803D",
+    "#C93C4A"
+)
+
+Selected Period Title =
+VAR MinDate = MIN(dim_date[full_date])
+VAR MaxDate = MAX(dim_date[full_date])
+RETURN
+    "Period " & FORMAT(MinDate, "dd/MM/yyyy")
+        & " - " & FORMAT(MaxDate, "dd/MM/yyyy")

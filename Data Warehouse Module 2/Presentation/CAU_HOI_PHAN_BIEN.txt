@@ -1,0 +1,119 @@
+CAU HOI PHAN BIEN VA Y TRA LOI
+==============================
+
+1. Vi sao chon star schema?
+
+Star schema làm rõ grain, giảm số join khi báo cáo và giúp Power BI có quan hệ
+dimension 1-* fact. Các phép đo theo ngày, ngân hàng, currency và payment format
+được dùng thường xuyên nên mô hình này phù hợp hơn việc cho BI đọc OLTP source.
+
+2. Grain cua fact_transaction la gi?
+
+Một dòng là một giao dịch nguồn đã chuẩn hóa. Transaction key dùng để nhận diện
+giao dịch; các dimension key mô tả ngữ cảnh tại thời điểm giao dịch.
+
+3. Vi sao account can SCD Type 2?
+
+Thông tin mô tả tài khoản có thể thay đổi. SCD2 lưu version theo effective_from,
+effective_to và is_current, nhờ đó báo cáo lịch sử dùng đúng thuộc tính ở thời
+điểm phát sinh thay vì ghi đè quá khứ.
+
+4. Tai sao khong cong tat ca amount_paid?
+
+Vì amount_paid đi cùng payment_currency. Cộng USD, EUR, Bitcoin… thành một tổng
+không có ý nghĩa nếu chưa có official exchange rate và ngày hiệu lực tỷ giá.
+
+5. amount_paid va amount_received chenh nhau co phai phi khong?
+
+Không thể kết luận. Dataset không có trường fee hoặc official FX rate. Project
+chỉ mô tả chênh lệch và không tự gán thành phí.
+
+6. is_laundering co phai ket qua du doan?
+
+Không. Đây là ground-truth label trong dataset synthetic. Project dùng nhãn này
+để phân tích và kiểm thử báo cáo, chưa xây mô hình machine learning.
+
+7. ETL FULL va INCREMENTAL khac nhau the nao?
+
+FULL tạo nền dữ liệu ban đầu. INCREMENTAL nhận các dòng mới/thay đổi theo điều
+kiện batch, cập nhật dimension trước rồi nạp fact. Cả hai ghi audit và chạy
+validation sau nạp.
+
+8. Lam sao tranh nap trung?
+
+Fact có khóa nhận diện giao dịch và ETL dùng điều kiện chống trùng. Batch
+incremental no-change được chạy để chứng minh số dòng insert bằng 0 và tổng fact
+không đổi.
+
+9. Reject = 0 co nghia la du lieu hoan hao?
+
+Không. Reject = 0 chỉ có nghĩa không có dòng vi phạm các quy tắc kỹ thuật hiện
+được cài đặt. Dữ liệu vẫn có đặc điểm nghiệp vụ cần giải thích như self-transfer
+hoặc giao dịch cross-currency.
+
+10. Tai sao dung materialized view?
+
+Các phép tổng hợp trên hơn 31 triệu fact tốn tài nguyên nếu lặp lại cho mỗi
+visual. Materialized view lưu kết quả theo grain báo cáo, giúp các truy vấn mẫu
+đạt dưới 5 ms trong lần đo.
+
+11. Tai sao Power BI khong doc truc tiep PostgreSQL local?
+
+Power BI Service không thể tự truy cập localhost trên máy Mac nếu không có
+gateway/nguồn cloud phù hợp. Project dùng snapshot kiểm soát trên OneDrive để
+giữ schema ổn định, nhẹ tài nguyên và làm mới được trong trình duyệt.
+
+12. Tai sao khong co file PBIX?
+
+Báo cáo được xây dựng trực tiếp trên Power BI Service. Luồng cloud-only này lưu
+semantic model và report trong workspace, vì vậy bộ nộp gồm URL, workbook nguồn,
+ảnh evidence, slide và báo cáo thay cho PBIX.
+
+13. Snapshot co phai realtime khong?
+
+Không. Snapshot là dữ liệu tại thời điểm export. Muốn gần realtime cần managed
+PostgreSQL hoặc gateway phù hợp, scheduled refresh và cơ chế incremental.
+
+14. Lam sao chung minh Power BI dung cung so lieu?
+
+Project đối soát raw -> fact -> mart -> pbi bằng count, AML count và các KPI.
+Week 4 lưu kết quả trong schema qa; 22/22 acceptance tests đạt.
+
+15. Vi sao khong tao quan he fact-to-fact trong Power BI?
+
+Fact-to-fact dễ tạo đường lọc mơ hồ và double counting. Các fact/mart dùng chung
+dimension, quan hệ 1-* và single direction.
+
+16. Self-transfer co bi loai khong?
+
+Không. Đây có thể là hành vi hợp lệ hoặc tín hiệu cần phân tích. Project giữ lại,
+gắn cờ và đo lường thay vì mặc định coi là dữ liệu lỗi.
+
+17. Bao mat duoc xu ly nhu the nao?
+
+Role powerbi_readonly chỉ có SELECT trên schema pbi, không có quyền ghi raw.
+File nộp không chứa mật khẩu. Production cần thêm secret management, TLS và RLS.
+
+18. Gioi han lon nhat cua project?
+
+Dữ liệu synthetic chỉ 28 ngày, thiếu branch/balance/fee/status, không có official
+FX rate và Power BI dùng snapshot. Những giới hạn này được công bố rõ để không
+suy diễn vượt dữ liệu.
+
+19. Neu mo rong project, uu tien gi?
+
+Managed PostgreSQL + gateway hoặc cloud connector; incremental theo source date;
+official FX dimension; RLS; giám sát SLA; sau đó mới bổ sung feature mart và AML
+scoring.
+
+20. Dong gop ky thuat quan trong nhat?
+
+Không chỉ tạo dashboard: project có grain rõ, SCD2, ETL idempotent, reconciliation
+end-to-end, lớp mart/reporting và acceptance test lưu lịch sử.
+
+21. Vi sao gop cac trang Power BI thanh mot dashboard?
+
+Mục tiêu là giúp phần bảo vệ theo dõi liên tục trên một canvas và không phải
+chuyển qua nhiều page có ít visual. Dashboard hợp nhất vẫn giữ ranh giới nghiệp
+vụ bằng 7 khu vực đánh số, tiêu đề giải thích và grain riêng cho từng data mart.
+Tám page cũ chỉ được ẩn, không xóa, nên vẫn có thể rollback khi cần.

@@ -1,0 +1,67 @@
+CÂU HỎI PHẢN BIỆN VÀ GỢI Ý TRẢ LỜI
+
+1. Project này có thật sự chạy trên AWS chưa?
+Trả lời: Chưa chạy end-to-end. Local DW và Power BI đã hoàn thành; AWS đã có S3 bucket/prefix và Glue database. Glue Crawler bị account denied access. Em trình bày AWS như kiến trúc mục tiêu/PoC và công khai tiêu chí nghiệm thu.
+
+2. Vì sao không dùng SSIS?
+Trả lời: SSIS phù hợp hệ sinh thái Microsoft/on-prem. Project local dùng Python/SQL và PostgreSQL. Khi chuyển AWS basic, Glue Visual ETL đảm nhiệm catalog và transformation mà không cần cài đặt ETL server riêng.
+
+3. Data warehouse hiện tại là gì?
+Trả lời: PostgreSQL là data warehouse local. Trên AWS basic, S3 curated + Glue Catalog + Athena tạo lớp lakehouse/serving serverless. Nếu cần concurrency và hiệu năng BI cao, có thể bổ sung Redshift ở giai đoạn sau.
+
+4. S3 có phải data warehouse không?
+Trả lời: Không. S3 là object storage/data lake. Schema nằm trong Glue Catalog; Athena là query engine. Data warehouse là mô hình dữ liệu và lớp phục vụ được tổ chức trên các thành phần đó.
+
+5. Vì sao dùng Athena, không dùng RDS?
+Trả lời: Athena phù hợp truy vấn phân tích ad-hoc trên dữ liệu S3, serverless và trả tiền theo dữ liệu quét. RDS phù hợp OLTP hoặc database quan hệ vận hành; không tối ưu cho scan khối lượng lớn trong PoC này.
+
+6. Vì sao không dùng Redshift?
+Trả lời: Redshift mạnh cho warehouse production, concurrency và SLA cao, nhưng làm PoC basic phức tạp và tốn chi phí hơn. Em bắt đầu bằng S3–Glue–Athena, chỉ nâng cấp khi có nhu cầu rõ.
+
+7. DynamoDB có phù hợp không?
+Trả lời: Không phù hợp cho aggregate/scan phân tích kiểu này. DynamoDB là key-value/document NoSQL phục vụ truy cập theo khóa với độ trễ thấp.
+
+8. Không viết PySpark thì Glue xử lý bằng gì?
+Trả lời: Em thiết kế bằng Glue Studio Visual ETL. Giao diện kéo-thả sinh job Spark phía sau. Em không phải tự viết PySpark nhưng vẫn hiểu engine và phải kiểm soát schema, partition, DQ và chi phí.
+
+9. Crawler làm gì và không làm gì?
+Trả lời: Crawler phát hiện schema/location và đăng ký bảng vào Data Catalog. Nó không làm sạch dữ liệu và không đảm bảo schema đúng nghiệp vụ, nên vẫn cần review và data quality tests.
+
+10. Tại sao dùng Parquet?
+Trả lời: Parquet là định dạng cột, nén tốt và cho phép Athena đọc các cột cần thiết. Kết hợp partition làm giảm bytes scanned, thời gian và chi phí.
+
+11. Partition theo gì?
+Trả lời: Fact transaction theo txn_date hoặc year/month tùy tần suất và quy mô. Không partition theo cột cardinality quá cao như transaction_id.
+
+12. Insight quan trọng nhất là gì?
+Trả lời: ACH chỉ chiếm 12,13% volume nhưng chứa 87,27% AML; AML rate ACH 0,7948%, cao khoảng 7,2 lần toàn hệ thống. Business nên ưu tiên kiểm tra ACH nhưng không được đánh đồng mọi ACH là rủi ro.
+
+13. Tại sao không cộng tổng amount?
+Trả lời: Có 1,52% cross-currency và chưa có FX rate theo ngày. Cộng nominal amount sẽ sai nghĩa. Em giữ amount gốc, currency gốc và chỉ tạo amount_base khi có bảng FX có effective date.
+
+14. Dữ liệu giảm sau 16/09 nghĩa là business giảm?
+Trả lời: Chưa thể kết luận. Em coi đó là data completeness/source window issue cho tới khi đối soát với nguồn. Đây là ví dụ vì sao Data Engineer phải đặt data quality trước insight.
+
+15. Làm sao đảm bảo ETL không làm mất dữ liệu?
+Trả lời: Reconciliation: raw_count = curated_valid_count + rejected_count; kiểm AML count, min/max date, duplicate và row count trước/sau join. Mỗi run có run_id và log.
+
+16. Vì sao cross-bank quan trọng?
+Trả lời: Cross-bank chiếm 91,20%, nên network lineage giữa bank nguồn–đích là trục phân tích chính. Nó không đồng nghĩa rửa tiền, nhưng quyết định thiết kế dimension và view network.
+
+17. IAM role cần quyền gì?
+Trả lời: Glue crawler/job cần đọc raw, ghi curated/temporary, truy cập Glue Catalog và ghi CloudWatch Logs. Áp dụng least privilege theo bucket/prefix, không dùng quyền admin dài hạn.
+
+18. Lỗi “Account is denied access” xử lý sao?
+Trả lời: Kiểm tra user/role permission, permission boundary, organization SCP hoặc giới hạn lab account; xem CloudTrail nếu có; nhờ admin cấp quyền phù hợp. Không cố vòng qua policy. Khi chưa mở quyền, demo kiến trúc và artifacts trung thực.
+
+19. Kiểm soát chi phí thế nào?
+Trả lời: Chạy sample trước, Parquet + Snappy, partition pruning, SELECT cột cần thiết, lifecycle temporary/results, xem DPU/job duration và dọn tài nguyên sau demo.
+
+20. Power BI chạy trên macOS thế nào?
+Trả lời: Power BI Desktop không có bản native macOS. Có thể dùng Power BI Service trên trình duyệt, hoặc chạy Desktop qua Windows VM/remote machine. Trong project, dashboard và ảnh xuất được dùng làm sản phẩm trình bày.
+
+21. Đây có phải hệ thống real-time không?
+Trả lời: Không. Đây là batch analytics PoC. Nếu cần near-real-time có thể bổ sung Kinesis/MSK, streaming ETL và alerting, nhưng đó là phạm vi mở rộng.
+
+22. Nếu được thêm một cải tiến production, bạn chọn gì?
+Trả lời: Em ưu tiên data quality framework và orchestration quan sát được trước ML: schema contract, DQ gates, incremental/idempotent load, CloudWatch alert và lineage. Insight chỉ đáng tin khi pipeline đáng tin.

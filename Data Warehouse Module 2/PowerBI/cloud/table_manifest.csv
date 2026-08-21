@@ -1,0 +1,17 @@
+TableName,CSVFile,TargetType,SemanticModelUse,RecommendedVisibility
+dim_date,dim_date.csv,Delta table,Date dimension,Visible
+dim_payment_currency,dim_payment_currency.csv,Delta table,Payment currency dimension,Visible
+dim_receiving_currency,dim_receiving_currency.csv,Delta table,Receiving currency role dimension,Visible
+dim_payment_format,dim_payment_format.csv,Delta table,Payment format dimension,Visible
+dim_bank,dim_bank.csv,Delta table,Bank dimension,Visible
+dim_pattern_type,dim_pattern_type.csv,Delta table,Laundering pattern dimension,Visible
+kpi_overview,kpi_overview.csv,Delta table,Unfiltered overall KPI source,Hidden except measures
+fact_daily_transaction,fact_daily_transaction.csv,Delta table,Daily transaction fact,Visible
+fact_aml_payment_format,fact_aml_payment_format.csv,Delta table,Overall AML by payment format,Visible
+fact_bank_activity,fact_bank_activity.csv,Delta table,Bank participation fact,Visible
+fact_currency_flow,fact_currency_flow.csv,Delta table,Currency corridor fact,Visible
+fact_pattern_summary,fact_pattern_summary.csv,Delta table,Pattern summary fact,Visible
+fact_aml_account_risk,fact_aml_account_risk.csv,Delta table,AML account risk fact,Visible
+etl_batch_monitor,etl_batch_monitor.csv,Delta table,ETL batch monitoring,Visible
+etl_validation_result,etl_validation_result.csv,Delta table,ETL reconciliation result,Visible
+data_quality_overview,data_quality_overview.csv,Delta table,Latest data-quality summary,Hidden except measures

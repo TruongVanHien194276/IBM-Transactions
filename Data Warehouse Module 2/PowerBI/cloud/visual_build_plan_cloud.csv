@@ -1,0 +1,53 @@
+Page,Zone,VisualType,Title,FieldsOrMeasures,Interaction,DesignNote
+01 Executive Overview,Header,Slicer,Date,dim_date[full_date],Sync pages 1-3,Dropdown or between
+01 Executive Overview,Header,Slicer,Payment currency,dim_payment_currency[payment_currency],Sync pages 1-3,Dropdown
+01 Executive Overview,Header,Slicer,Payment format,dim_payment_format[payment_format],Sync pages 1-3,Dropdown
+01 Executive Overview,KPI,Card,Transactions,Overall Transactions,Do not filter by slicers,Blue accent
+01 Executive Overview,KPI,Card,Laundering,Overall Laundering Transactions,Do not filter by slicers,Red accent
+01 Executive Overview,KPI,Card,AML rate,Overall AML Rate %,Do not filter by slicers,Red accent
+01 Executive Overview,KPI,Card,Cross-bank,Overall Cross-bank Rate %,Do not filter by slicers,Cyan accent
+01 Executive Overview,KPI,Card,Cross-currency,Overall Cross-currency Rate %,Do not filter by slicers,Violet accent
+01 Executive Overview,KPI,Card,Self-transfer,Overall Self-transfer Rate %,Do not filter by slicers,Amber accent
+01 Executive Overview,Main,Line and clustered column chart,Transaction volume,dim_date[full_date]; Transactions; Laundering Transactions,Respond to slicers,Use secondary AML axis
+01 Executive Overview,Main,Donut chart,Payment-format mix,dim_payment_format[payment_format]; Transactions,Respond to slicers,Top 5 plus Other
+01 Executive Overview,Bottom,Clustered bar chart,AML exposure by payment format,dim_payment_format[payment_format]; Laundering Transactions,Respond to slicers,Sort descending
+02 Transaction Trend,KPI,Card,Filtered transactions,Transactions,Respond to slicers,Blue accent
+02 Transaction Trend,KPI,Card,Filtered AML,Laundering Transactions,Respond to slicers,Red accent
+02 Transaction Trend,KPI,Card,Daily average,Transactions divided by active dates,Respond to slicers,Cyan accent
+02 Transaction Trend,KPI,Card,Latest daily change,Transaction Growth %,Respond to slicers,Conditional red or green
+02 Transaction Trend,Main,Area chart,Daily transaction trend,dim_date[full_date]; Transactions,Respond to slicers,Single blue series
+02 Transaction Trend,Main,Clustered bar chart,Volume by weekday,dim_date[day_name]; Transactions,Respond to slicers,Sort by day_of_week
+02 Transaction Trend,Bottom,Matrix,Date by payment format,dim_date[full_date]; dim_payment_format[payment_format]; Transactions,Respond to slicers,Conditional background heatmap
+02 Transaction Trend,Bottom,Table,Last seven days,dim_date[full_date]; Transactions; Laundering Transactions; Daily Transaction Change; AML Rate %,Respond to slicers,Sort date descending
+03 AML Risk,KPI,Card,AML transactions,Laundering Transactions,Respond to slicers,Red accent
+03 AML Risk,KPI,Card,AML rate,AML Rate %,Respond to slicers,Red accent
+03 AML Risk,KPI,Card,Risk accounts,Distinct account_key in fact_aml_account_risk,Respond to bank filter,Amber accent
+03 AML Risk,Main,Clustered bar chart,AML rate by payment format,dim_payment_format[payment_format]; AML Rate %,Respond to slicers,Sort descending
+03 AML Risk,Main,Scatter chart,Bank activity vs AML rate,Bank Total Participations; Bank AML Participation Rate %; Bank AML Participations; dim_bank[bank_name],Respond to bank selection,Bubble size is AML participation
+03 AML Risk,Bottom,Table,Highest-risk accounts,bank_name; account_number; entity_id; AML Account Sent Participations; AML Account Received Participations; AML Account Participations,Respond to bank filter,Top 20 with data bars
+04 Bank Activity,KPI,Card,Bank participations,Bank Total Participations,Respond to bank filter,Participation basis
+04 Bank Activity,KPI,Card,Bank AML participations,Bank AML Participations,Respond to bank filter,Red accent
+04 Bank Activity,Main,Clustered bar chart,Top banks by activity,dim_bank[bank_name]; Bank Total Participations,Respond to bank filter,Top 15
+04 Bank Activity,Main,Stacked bar chart,Sent vs received mix,dim_bank[bank_name]; Bank Sent Participations; Bank Received Participations,Respond to bank filter,Top 15
+04 Bank Activity,Bottom,Treemap,Activity share,dim_bank[bank_name]; Bank Total Participations,Respond to bank filter,Top 10
+04 Bank Activity,Bottom,Table,Bank ranking,Bank Activity Rank; bank_name; sent; received; total; AML; AML rate,Respond to bank filter,Top 50
+05 Currency Flow,KPI,Card,Currency-flow transactions,Currency Flow Transactions,Respond to currency filters,Violet accent
+05 Currency Flow,KPI,Card,Currency-flow AML,Currency Flow Laundering,Respond to currency filters,Red accent
+05 Currency Flow,Main,Clustered bar chart,Top currency corridors,payment_currency; receiving_currency; Currency Flow Transactions,Respond to currency filters,Top 15
+05 Currency Flow,Main,Scatter chart,Volume vs AML rate,Currency Flow Transactions; Currency Flow AML Rate %; Currency Flow Laundering,Respond to currency filters,Bubble size AML count
+05 Currency Flow,Bottom,Matrix,Currency-flow matrix,payment_currency; receiving_currency; Currency Flow Transactions,Respond to currency filters,Conditional background color
+05 Currency Flow,Bottom,Table,Corridor detail,payment_currency; receiving_currency; transactions; AML; AML rate,Respond to currency filters,Never aggregate amount across currencies
+06 Pattern Analysis,KPI,Card,Pattern attempts,Pattern Attempts,Respond to pattern filter,Violet accent
+06 Pattern Analysis,KPI,Card,Pattern transactions,Pattern Transactions,Respond to pattern filter,Red accent
+06 Pattern Analysis,KPI,Card,Transactions per attempt,Transactions per Pattern Attempt,Respond to pattern filter,Amber accent
+06 Pattern Analysis,Main,Clustered bar chart,Transactions by pattern,dim_pattern_type[pattern_type]; Pattern Transactions,Respond to pattern filter,Sort descending
+06 Pattern Analysis,Main,Clustered bar chart,Attempts by pattern,dim_pattern_type[pattern_type]; Pattern Attempts,Respond to pattern filter,Sort descending
+06 Pattern Analysis,Bottom,Donut chart,Pattern composition,dim_pattern_type[pattern_type]; Pattern Transactions,Respond to pattern filter,Top 5 plus Other
+06 Pattern Analysis,Bottom,Table,Pattern detail,Pattern Rank; pattern_type; attempts; transactions; transactions per attempt; min/max sequence,Respond to pattern filter,No join to daily fact
+07 ETL and Data Quality,KPI,Card,ETL batches,ETL Batch Count,Respond to batch filter,Blue accent
+07 ETL and Data Quality,KPI,Card,Failed batches,ETL Failed Batches,Respond to batch filter,Conditional green or red
+07 ETL and Data Quality,KPI,Card,Rejected rows,ETL Rejected Rows,Respond to batch filter,Conditional green or red
+07 ETL and Data Quality,KPI,Card,Validation pass rate,Validation Pass Rate %,Respond to batch filter,Conditional green or red
+07 ETL and Data Quality,Main,Line chart,Batch duration,etl_batch_monitor[dw_batch_id]; etl_batch_monitor[duration_minutes],Respond to batch filter,Sort batch ascending
+07 ETL and Data Quality,Main,Table,Batch history,batch; load type; status; duration; inserted; rejected; validation,Respond to batch filter,Sort batch descending
+07 ETL and Data Quality,Bottom,Table,Validation detail,batch; check; source; target; difference; status,Respond to batch filter,Conditional status text

@@ -1,0 +1,12 @@
+FromTable,FromColumn,ToTable,ToColumn,Cardinality,CrossFilter,Active,BusinessMeaning
+dim_date,date_key,fact_daily_transaction,date_key,One-to-many,Single,Yes,Date filters daily transaction summary
+dim_payment_currency,payment_currency_key,fact_daily_transaction,payment_currency_key,One-to-many,Single,Yes,Payment currency filters daily summary
+dim_payment_format,payment_format_key,fact_daily_transaction,payment_format_key,One-to-many,Single,Yes,Payment format filters daily summary
+dim_payment_format,payment_format_key,fact_aml_payment_format,payment_format_key,One-to-many,Single,Yes,Payment format filters overall AML summary
+dim_bank,bank_key,fact_bank_activity,bank_key,One-to-many,Single,Yes,Bank filters sender and receiver participation
+dim_bank,bank_key,fact_aml_account_risk,bank_key,One-to-many,Single,Yes,Bank filters risky accounts
+dim_payment_currency,payment_currency_key,fact_currency_flow,payment_currency_key,One-to-many,Single,Yes,Payment currency role
+dim_receiving_currency,receiving_currency_key,fact_currency_flow,receiving_currency_key,One-to-many,Single,Yes,Receiving currency role
+dim_pattern_type,pattern_type_key,fact_pattern_summary,pattern_type_key,One-to-many,Single,Yes,Pattern type filters pattern summary
+etl_batch_monitor,dw_batch_id,etl_validation_result,dw_batch_id,One-to-many,Single,Yes,Batch filters its validation checks
+

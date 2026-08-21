@@ -1,0 +1,34 @@
+# macOS / editor
+.DS_Store
+**/.DS_Store
+.vscode/*.log
+~$*
+
+# Local secrets and Python environments
+.env
+.env.*
+!.env.example
+.venv/
+.profile-venv/
+**/__pycache__/
+*.py[cod]
+
+# Generated build and temporary artifacts
+**/.build/
+**/work/
+**/logs/*.log
+
+# IBM AML source data is too large for normal GitHub storage.
+# Keep processed samples, SQL, reports, slides and dashboard assets in Git.
+**/data/raw/*
+**/data/profile/*
+**/data/reject/*
+**/backups/*
+
+# Local database / backup formats
+*.duckdb
+*.backup
+*.bak
+
+# Submission archives can be rebuilt from the tracked deliverables
+*.zip

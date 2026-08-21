@@ -1,0 +1,280 @@
+// ================================================================
+// IBM AML HI-Medium - DAX measures cho Power BI tuần 3
+// Tạo calculated table _Measures trước, sau đó tạo từng measure.
+// ================================================================
+
+// Calculated table
+_Measures =
+DATATABLE(
+    "Measure Group", STRING,
+    {
+        {"Overview"},
+        {"Transaction"},
+        {"AML"},
+        {"Bank"},
+        {"Currency"},
+        {"Pattern"},
+        {"ETL"}
+    }
+)
+
+// ---------------- OVERVIEW: không phụ thuộc slicer ----------------
+Overall Transactions =
+SUM(kpi_overview[transaction_count])
+
+Overall Laundering Transactions =
+SUM(kpi_overview[laundering_count])
+
+Overall AML Rate % =
+DIVIDE(
+    [Overall Laundering Transactions],
+    [Overall Transactions],
+    0
+)
+
+Overall Cross-bank Transactions =
+SUM(kpi_overview[cross_bank_count])
+
+Overall Cross-bank Rate % =
+DIVIDE(
+    [Overall Cross-bank Transactions],
+    [Overall Transactions],
+    0
+)
+
+Overall Cross-currency Transactions =
+SUM(kpi_overview[cross_currency_count])
+
+Overall Cross-currency Rate % =
+DIVIDE(
+    [Overall Cross-currency Transactions],
+    [Overall Transactions],
+    0
+)
+
+Overall Self-transfer Transactions =
+SUM(kpi_overview[self_transfer_count])
+
+Overall Self-transfer Rate % =
+DIVIDE(
+    [Overall Self-transfer Transactions],
+    [Overall Transactions],
+    0
+)
+
+Data Start Date =
+MIN(kpi_overview[min_transaction_date])
+
+Data End Date =
+MAX(kpi_overview[max_transaction_date])
+
+Data Period Label =
+FORMAT([Data Start Date], "dd/MM/yyyy")
+    & " - "
+    & FORMAT([Data End Date], "dd/MM/yyyy")
+
+// ---------------- TRANSACTION: phản ứng với slicer ----------------
+Transactions =
+SUM(fact_daily_transaction[transaction_count])
+
+Laundering Transactions =
+SUM(fact_daily_transaction[laundering_count])
+
+AML Rate % =
+DIVIDE(
+    [Laundering Transactions],
+    [Transactions],
+    0
+)
+
+Amount Paid =
+SUM(fact_daily_transaction[total_amount_paid])
+
+Average Amount per Transaction =
+DIVIDE(
+    [Amount Paid],
+    [Transactions],
+    0
+)
+
+Selected Currency Amount Paid =
+IF(
+    HASONEVALUE(dim_payment_currency[payment_currency]),
+    [Amount Paid],
+    BLANK()
+)
+
+Selected Currency Amount Title =
+VAR CurrencyName =
+    SELECTEDVALUE(
+        dim_payment_currency[payment_currency],
+        "Chọn đúng một currency"
+    )
+RETURN
+    "Amount Paid - " & CurrencyName
+
+Previous Day Transactions =
+CALCULATE(
+    [Transactions],
+    DATEADD(dim_date[full_date], -1, DAY)
+)
+
+Transaction Growth % =
+DIVIDE(
+    [Transactions] - [Previous Day Transactions],
+    [Previous Day Transactions],
+    0
+)
+
+Cumulative Transactions =
+CALCULATE(
+    [Transactions],
+    FILTER(
+        ALLSELECTED(dim_date[full_date]),
+        dim_date[full_date] <= MAX(dim_date[full_date])
+    )
+)
+
+// ---------------- BANK ----------------
+Bank Sent Participations =
+SUM(fact_bank_activity[sent_count])
+
+Bank Received Participations =
+SUM(fact_bank_activity[received_count])
+
+Bank Total Participations =
+SUM(fact_bank_activity[total_participations])
+
+Bank AML Participations =
+SUM(fact_bank_activity[laundering_participations])
+
+Bank AML Participation Rate % =
+DIVIDE(
+    [Bank AML Participations],
+    [Bank Total Participations],
+    0
+)
+
+Bank Activity Rank =
+RANKX(
+    ALLSELECTED(dim_bank[bank_name]),
+    [Bank Total Participations],
+    ,
+    DESC,
+    DENSE
+)
+
+// ---------------- ACCOUNT RISK ----------------
+AML Account Sent Participations =
+SUM(fact_aml_account_risk[laundering_sent_count])
+
+AML Account Received Participations =
+SUM(fact_aml_account_risk[laundering_received_count])
+
+AML Account Participations =
+SUM(fact_aml_account_risk[laundering_participations])
+
+AML Account Risk Rank =
+RANKX(
+    ALLSELECTED(fact_aml_account_risk[account_key]),
+    [AML Account Participations],
+    ,
+    DESC,
+    DENSE
+)
+
+// ---------------- CURRENCY FLOW ----------------
+Currency Flow Transactions =
+SUM(fact_currency_flow[transaction_count])
+
+Currency Flow Laundering =
+SUM(fact_currency_flow[laundering_count])
+
+Currency Flow AML Rate % =
+DIVIDE(
+    [Currency Flow Laundering],
+    [Currency Flow Transactions],
+    0
+)
+
+Currency Flow Amount Paid =
+SUM(fact_currency_flow[total_amount_paid])
+
+Currency Flow Amount Received =
+SUM(fact_currency_flow[total_amount_received])
+
+// ---------------- PATTERN ----------------
+Pattern Attempts =
+SUM(fact_pattern_summary[attempt_count])
+
+Pattern Transactions =
+SUM(fact_pattern_summary[pattern_transaction_count])
+
+Transactions per Pattern Attempt =
+DIVIDE(
+    [Pattern Transactions],
+    [Pattern Attempts],
+    0
+)
+
+Pattern Rank =
+RANKX(
+    ALLSELECTED(dim_pattern_type[pattern_type]),
+    [Pattern Transactions],
+    ,
+    DESC,
+    DENSE
+)
+
+// ---------------- ETL & DATA QUALITY ----------------
+ETL Batch Count =
+COUNTROWS(etl_batch_monitor)
+
+ETL Completed Batches =
+CALCULATE(
+    COUNTROWS(etl_batch_monitor),
+    etl_batch_monitor[status] = "COMPLETED"
+)
+
+ETL Failed Batches =
+CALCULATE(
+    COUNTROWS(etl_batch_monitor),
+    etl_batch_monitor[status] = "FAILED"
+)
+
+ETL Rejected Rows =
+SUM(etl_batch_monitor[rejected_rows])
+
+Latest Batch ID =
+MAX(etl_batch_monitor[dw_batch_id])
+
+Latest Batch Duration Minutes =
+VAR LatestId = [Latest Batch ID]
+RETURN
+    CALCULATE(
+        MAX(etl_batch_monitor[duration_minutes]),
+        etl_batch_monitor[dw_batch_id] = LatestId
+    )
+
+Validation Checks =
+COUNTROWS(etl_validation_result)
+
+Validation Passed =
+CALCULATE(
+    COUNTROWS(etl_validation_result),
+    etl_validation_result[status] = "PASSED"
+)
+
+Validation Failed =
+CALCULATE(
+    COUNTROWS(etl_validation_result),
+    etl_validation_result[status] = "FAILED"
+)
+
+Validation Pass Rate % =
+DIVIDE(
+    [Validation Passed],
+    [Validation Checks],
+    0
+)
+

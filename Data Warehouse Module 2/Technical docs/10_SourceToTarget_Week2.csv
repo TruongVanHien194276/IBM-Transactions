@@ -1,0 +1,31 @@
+source_table,source_column,target_table,target_column,transformation,scd_or_rule,validation
+raw.transactions,source_transaction_id,dw.fact_transaction,transaction_key,copy,Degenerate/lineage,Unique and row count match
+raw.transactions,transaction_timestamp,dw.dim_date,date_key,to_char YYYYMMDD,Type 0,Date lookup not unknown
+raw.transactions,transaction_timestamp,dw.dim_time,time_key,to_char HH24MI,Type 0,Time lookup not unknown
+raw.account,bank_id,dw.dim_bank,bank_id,distinct normalized bank ID,Type 1,122333 current business keys
+raw.account,bank_name,dw.dim_bank,bank_name,min per bank_id,Type 1,One name per bank ID
+raw.account,entity_id,dw.dim_entity,entity_id,distinct non-null entity ID,Type 1,668138 current business keys
+raw.account,entity_name,dw.dim_entity,entity_name,min per entity_id,Type 1,One name per entity ID
+raw.account,"bank_id + account_number",dw.dim_account,"bank_id + account_number",business key lookup,SCD Type 2,2087786 current rows
+raw.account,entity_id,dw.dim_account,entity_key,lookup dim_entity,SCD Type 2,Unknown count zero
+raw.transactions,from_bank_id,dw.fact_transaction,from_bank_key,lookup dim_bank,Role-playing,Unknown count zero
+raw.transactions,to_bank_id,dw.fact_transaction,to_bank_key,lookup dim_bank,Role-playing,Unknown count zero
+raw.transactions,"from_bank_id + from_account_id",dw.fact_transaction,from_account_key,lookup current dim_account,Role-playing,Unknown count zero
+raw.transactions,"to_bank_id + to_account_id",dw.fact_transaction,to_account_key,lookup current dim_account,Role-playing,Unknown count zero
+raw.transactions,payment_currency,dw.dim_currency,currency_name,distinct trimmed value,Type 1/static,15 members excluding Unknown
+raw.transactions,receiving_currency,dw.dim_currency,currency_name,distinct trimmed value,Type 1/static,15 members excluding Unknown
+raw.transactions,payment_currency,dw.fact_transaction,payment_currency_key,lookup dim_currency,Role-playing,Unknown count zero
+raw.transactions,receiving_currency,dw.fact_transaction,receiving_currency_key,lookup dim_currency,Role-playing,Unknown count zero
+raw.transactions,payment_format,dw.dim_payment_format,payment_format,distinct trimmed value,Type 1/static,7 members excluding Unknown
+raw.transactions,payment_format,dw.fact_transaction,payment_format_key,lookup dim_payment_format,Foreign key lookup,Unknown count zero
+raw.transactions,amount_paid,dw.fact_transaction,amount_paid,copy numeric(24 8),Measure grouped by paid currency,Total by currency matches
+raw.transactions,amount_received,dw.fact_transaction,amount_received,copy numeric(24 8),Measure grouped by received currency,Total by currency matches
+raw.transactions,is_laundering,dw.fact_transaction,is_laundering,copy boolean,Ground truth,35230 true rows
+raw.transactions,"from_bank_id <> to_bank_id",dw.fact_transaction,is_cross_bank,boolean expression,Derived flag,29092624 true rows
+raw.transactions,"payment_currency <> receiving_currency",dw.fact_transaction,is_cross_currency,boolean expression,Derived flag,485144 true rows
+raw.transactions,"same bank and same account",dw.fact_transaction,is_self_transfer,boolean expression,Derived flag,2561860 true rows
+raw.transactions,"amount_received / amount_paid",dw.fact_transaction,implied_exchange_rate,only cross-currency and paid > 0,Derived measure,Null for same currency
+raw.laundering_pattern_transaction,pattern_type,dw.dim_pattern_type,pattern_type,distinct,Type 1/static,8 members excluding Unknown
+raw.laundering_pattern_transaction,pattern_transaction_id,dw.fact_pattern_transaction,pattern_transaction_key,copy,Lineage,22743 unique rows
+raw.laundering_pattern_transaction,pattern_attempt_id,dw.fact_pattern_transaction,pattern_attempt_id,copy,Degenerate dimension,2756 attempts
+raw.laundering_pattern_transaction,pattern_sequence,dw.fact_pattern_transaction,pattern_sequence,copy,Attempt order,Unique per attempt

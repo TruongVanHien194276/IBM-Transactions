@@ -1,0 +1,8 @@
+payment_format_key,payment_format
+1,Reinvestment
+2,Wire
+3,ACH
+4,Cheque
+5,Bitcoin
+6,Credit Card
+7,Cash

@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IBM AML — Power BI Cloud Design</title>
+<style>
+  :root {
+    --navy:#0B1220; --navy-2:#111C32; --ink:#111827; --muted:#657084;
+    --bg:#F3F5F8; --panel:#FFFFFF; --line:#E4E8EF; --blue:#2563EB;
+    --cyan:#0891B2; --teal:#0F766E; --red:#C93C4A; --amber:#D97706;
+    --violet:#6D5BD0; --green:#15803D; --soft-blue:#EAF1FF;
+    --soft-red:#FCEAEC; --soft-green:#E9F6EE; --soft-amber:#FFF3DF;
+  }
+  * { box-sizing:border-box; }
+  html, body { width:1920px; height:1080px; margin:0; overflow:hidden; }
+  body {
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    text-rendering:geometricPrecision; -webkit-font-smoothing:antialiased;
+  }
+  .shell { display:grid; grid-template-columns:252px 1fr; width:100%; height:100%; }
+  .sidebar {
+    background:var(--navy); color:#fff; padding:31px 23px 26px;
+    display:flex; flex-direction:column; position:relative;
+  }
+  .brand { display:flex; align-items:center; gap:13px; margin:2px 7px 40px; }
+  .brand-mark {
+    width:37px; height:37px; border-radius:10px; background:#fff;
+    color:var(--navy); display:grid; place-items:center; font-weight:800; letter-spacing:-1px;
+  }
+  .brand-title { font-size:18px; line-height:1.1; font-weight:750; letter-spacing:.1px; }
+  .brand-sub { color:#8D9AB0; font-size:11px; margin-top:5px; letter-spacing:.35px; }
+  .nav-label {
+    color:#718097; font-size:10px; font-weight:700; letter-spacing:1.3px;
+    margin:0 12px 12px; text-transform:uppercase;
+  }
+  .nav { display:flex; flex-direction:column; gap:7px; }
+  .nav-item {
+    display:flex; align-items:center; gap:13px; min-height:47px; padding:0 13px;
+    border-radius:9px; color:#AFB9C9; font-size:13px; font-weight:570;
+    text-decoration:none; cursor:pointer; transition:background .15s ease,color .15s ease;
+  }
+  .nav-item:hover { background:#111C32; color:#fff; }
+  .nav-item.active { background:#17294A; color:#fff; box-shadow:inset 3px 0 0 #5F8BFF; }
+  .nav-icon { width:22px; text-align:center; color:#7D8BA1; font-size:16px; }
+  .nav-item.active .nav-icon { color:#7FA2FF; }
+  .side-note {
+    margin-top:auto; background:var(--navy-2); border:1px solid #24324A; border-radius:10px;
+    padding:14px; color:#93A0B4; font-size:11px; line-height:1.55;
+  }
+  .side-note strong { display:block; color:#D8DFEA; font-size:12px; margin-bottom:2px; }
+  main { padding:26px 31px 24px; min-width:0; }
+  .topbar { height:66px; display:flex; align-items:flex-start; justify-content:space-between; }
+  .title h1 { margin:0; font-size:27px; letter-spacing:-.55px; font-weight:750; }
+  .title p { margin:8px 0 0; color:var(--muted); font-size:13px; }
+  .report-meta { text-align:right; color:#7A8496; font-size:11px; line-height:1.5; }
+  .report-meta strong { color:#263247; font-size:12px; }
+  .filterbar {
+    height:51px; background:#fff; border:1px solid var(--line); border-radius:11px;
+    display:flex; align-items:center; gap:10px; padding:0 13px; margin-bottom:17px;
+  }
+  .filter-title { color:#667085; font-size:11px; font-weight:700; letter-spacing:.5px; margin-right:2px; }
+  .filter-chip {
+    height:29px; padding:0 12px; border-radius:7px; border:1px solid #DEE4EC;
+    background:#F9FAFB; display:flex; align-items:center; gap:10px; min-width:138px;
+    color:#273348; font-size:11px;
+  }
+  .filter-chip span { margin-left:auto; color:#9AA4B2; font-size:9px; }
+  .filter-status {
+    margin-left:auto; color:#536173; font-size:10px; display:flex; align-items:center; gap:7px;
+  }
+  .status-dot { width:7px; height:7px; background:var(--green); border-radius:50%; }
+  .content { height:896px; display:flex; flex-direction:column; gap:17px; }
+  .kpi-row { display:grid; gap:14px; height:132px; }
+  .kpi-row.six { grid-template-columns:repeat(6, 1fr); }
+  .kpi-row.four { grid-template-columns:repeat(4, 1fr); }
+  .kpi-row.five { grid-template-columns:repeat(5, 1fr); }
+  .kpi {
+    background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 17px 14px;
+    position:relative; overflow:hidden;
+  }
+  .kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent); }
+  .kpi-label { color:#687386; font-size:11px; font-weight:650; letter-spacing:.15px; }
+  .kpi-value { margin-top:13px; font-size:27px; font-weight:760; letter-spacing:-.55px; }
+  .kpi-foot { margin-top:10px; color:#8A94A3; font-size:10px; display:flex; justify-content:space-between; }
+  .pill { padding:3px 7px; border-radius:999px; font-size:9px; font-weight:700; }
+  .pill.blue { color:#1D4ED8; background:#E8F0FF; }
+  .pill.red { color:#A82736; background:#FCE8EB; }
+  .pill.green { color:#166534; background:#E8F5EC; }
+  .pill.amber { color:#9A5B08; background:#FFF1D7; }
+  .row { display:grid; gap:17px; min-height:0; }
+  .row.two-one { grid-template-columns:2fr 1fr; }
+  .row.one-one { grid-template-columns:1fr 1fr; }
+  .row.five-seven { grid-template-columns:5fr 7fr; }
+  .row.seven-five { grid-template-columns:7fr 5fr; }
+  .panel {
+    background:#fff; border:1px solid var(--line); border-radius:12px; padding:17px 18px 15px;
+    min-width:0; min-height:0; overflow:hidden;
+  }
+  .panel-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+  .panel-title { font-size:13px; font-weight:740; color:#202A3B; }
+  .panel-sub { color:#8A94A3; font-size:10px; margin-top:4px; }
+  .legend { display:flex; align-items:center; gap:13px; color:#737E90; font-size:10px; }
+  .legend i { width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:5px; }
+  .chart { width:100%; height:calc(100% - 35px); }
+  svg { overflow:visible; }
+  svg text { font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+  .bar-list { display:flex; flex-direction:column; gap:10px; padding-top:2px; }
+  .bar-row { display:grid; grid-template-columns:150px 1fr 68px; align-items:center; gap:11px; font-size:10px; }
+  .bar-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#3A4659; }
+  .bar-track { height:12px; background:#EEF1F5; border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; }
+  .bar-value { text-align:right; color:#5D687A; font-variant-numeric:tabular-nums; }
+  .stack-list { display:flex; flex-direction:column; gap:11px; }
+  .stack-row { display:grid; grid-template-columns:132px 1fr 60px; gap:10px; align-items:center; font-size:10px; }
+  .stack-track { display:flex; height:13px; border-radius:4px; overflow:hidden; background:#EEF1F5; }
+  .stack-track i { height:100%; display:block; }
+  .donut-wrap { display:flex; align-items:center; justify-content:center; gap:22px; height:100%; }
+  .donut { width:154px; height:154px; border-radius:50%; position:relative; flex:none; }
+  .donut::after { content:""; position:absolute; inset:32px; background:#fff; border-radius:50%; }
+  .donut-center { position:absolute; inset:0; display:grid; place-content:center; text-align:center; z-index:2; }
+  .donut-center strong { font-size:19px; }
+  .donut-center span { font-size:9px; color:#808B9C; margin-top:3px; }
+  .donut-legend { display:flex; flex-direction:column; gap:9px; min-width:150px; }
+  .donut-legend div { display:grid; grid-template-columns:9px 1fr auto; gap:8px; align-items:center; font-size:9px; color:#596578; }
+  .donut-legend i { width:8px; height:8px; border-radius:2px; }
+  .table-wrap { height:100%; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; font-size:9.6px; font-variant-numeric:tabular-nums; }
+  th { color:#667085; background:#F7F8FA; text-align:left; font-size:9px; letter-spacing:.25px; padding:9px 10px; border-bottom:1px solid #E2E7EE; }
+  td { padding:8px 10px; border-bottom:1px solid #EDF0F4; color:#334055; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+  td.num, th.num { text-align:right; }
+  .risk-bar { display:flex; align-items:center; gap:7px; justify-content:flex-end; }
+  .risk-bar i { display:block; height:6px; border-radius:4px; background:#D45461; }
+  .status { font-size:8.5px; font-weight:750; letter-spacing:.3px; }
+  .status.pass { color:#166534; } .status.fail { color:#A82736; }
+  .heatmap { display:grid; gap:3px; height:100%; }
+  .heat-head, .heat-row { display:grid; grid-template-columns:70px repeat(6, 1fr); gap:3px; }
+  .heat-head div { color:#687386; font-size:8.5px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .heat-head div:first-child { text-align:left; }
+  .heat-row div { min-height:16px; border-radius:2px; display:grid; place-items:center; font-size:7px; color:#fff; }
+  .heat-row .heat-label { color:#6D788A; background:transparent; justify-content:start; font-size:8.5px; }
+  .insight {
+    border-left:3px solid var(--blue); background:#F7F9FC; border-radius:0 8px 8px 0;
+    padding:12px 13px; color:#556174; font-size:10px; line-height:1.55;
+  }
+  .insight strong { color:#253146; display:block; margin-bottom:3px; }
+  .mini-metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mini-metric { background:#F8F9FB; border:1px solid #E8ECF2; border-radius:9px; padding:11px; }
+  .mini-metric span { display:block; color:#7C8798; font-size:9px; }
+  .mini-metric strong { display:block; color:#243044; font-size:17px; margin-top:6px; }
+  .footer-note { color:#8993A1; font-size:9px; text-align:right; margin-top:5px; }
+  .page-tag { color:#758196; font-size:10px; font-weight:650; letter-spacing:.5px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const DATA = {"kpi":{"transactions":31898238,"aml":35230,"amlRate":0.110445,"crossBank":29092624,"crossCurrency":485144,"selfTransfer":2561860,"start":"2022-09-01","end":"2022-09-28"},"daily":[{"date":"2022-09-01","short":"09/01","transactions":4465985,"aml":1056,"amlRate":0.02364539961509051,"change":0,"changeRate":0.0},{"date":"2022-09-02","short":"09/02","transactions":3021258,"aml":1331,"amlRate":0.044054496504436234,"change":-1444727,"changeRate":-32.3495712591959},{"date":"2022-09-03","short":"09/03","transactions":828958,"aml":1373,"amlRate":0.16562962176612084,"change":-2192300,"changeRate":-72.56248887053009},{"date":"2022-09-04","short":"09/04","transactions":830607,"aml":1549,"amlRate":0.18649012108012575,"change":1649,"changeRate":0.19892443284219466},{"date":"2022-09-05","short":"09/05","transactions":1928599,"aml":1863,"amlRate":0.096598618997521,"change":1097992,"changeRate":132.1915177695348},{"date":"2022-09-06","short":"09/06","transactions":1929090,"aml":2041,"amlRate":0.10580118086766299,"change":491,"changeRate":0.025458895291348798},{"date":"2022-09-07","short":"09/07","transactions":1931015,"aml":2147,"amlRate":0.1111850503491687,"change":1925,"changeRate":0.09978798293495897},{"date":"2022-09-08","short":"09/08","transactions":1930610,"aml":2154,"amlRate":0.11157095425798064,"change":-405,"changeRate":-0.020973425892600525},{"date":"2022-09-09","short":"09/09","transactions":2621004,"aml":2199,"amlRate":0.08389914704441503,"change":690394,"changeRate":35.760407332397534},{"date":"2022-09-10","short":"09/10","transactions":831874,"aml":2081,"amlRate":0.25015807682413443,"change":-1789130,"changeRate":-68.26124645364906},{"date":"2022-09-11","short":"09/11","transactions":830143,"aml":1966,"amlRate":0.23682666721275733,"change":-1731,"changeRate":-0.20808439739672113},{"date":"2022-09-12","short":"09/12","transactions":1930240,"aml":2179,"amlRate":0.11288751657824933,"change":1100097,"changeRate":132.51897564636454},{"date":"2022-09-13","short":"09/13","transactions":1928626,"aml":2275,"amlRate":0.11795962514245893,"change":-1614,"changeRate":-0.0836165450928382},{"date":"2022-09-14","short":"09/14","transactions":1930957,"aml":2263,"amlRate":0.11719577390899953,"change":2331,"changeRate":0.12086324668442715},{"date":"2022-09-15","short":"09/15","transactions":1930419,"aml":2253,"amlRate":0.1167104136459494,"change":-538,"changeRate":-0.027861832241732984},{"date":"2022-09-16","short":"09/16","transactions":3021866,"aml":2416,"amlRate":0.07995060005969822,"change":1091447,"changeRate":56.539383418832905},{"date":"2022-09-17","short":"09/17","transactions":2020,"aml":1199,"amlRate":59.35643564356435,"change":-3019846,"changeRate":-99.93315388571168},{"date":"2022-09-18","short":"09/18","transactions":1591,"aml":916,"amlRate":57.57385292269013,"change":-429,"changeRate":-21.237623762376238},{"date":"2022-09-19","short":"09/19","transactions":1195,"aml":695,"amlRate":58.15899581589958,"change":-396,"changeRate":-24.890006285355124},{"date":"2022-09-20","short":"09/20","transactions":855,"aml":492,"amlRate":57.54385964912281,"change":-340,"changeRate":-28.451882845188283},{"date":"2022-09-21","short":"09/21","transactions":586,"aml":336,"amlRate":57.33788395904437,"change":-269,"changeRate":-31.461988304093566},{"date":"2022-09-22","short":"09/22","transactions":309,"aml":184,"amlRate":59.54692556634304,"change":-277,"changeRate":-47.26962457337884},{"date":"2022-09-23","short":"09/23","transactions":134,"aml":84,"amlRate":62.6865671641791,"change":-175,"changeRate":-56.63430420711974},{"date":"2022-09-24","short":"09/24","transactions":104,"aml":65,"amlRate":62.5,"change":-30,"changeRate":-22.388059701492537},{"date":"2022-09-25","short":"09/25","transactions":102,"aml":59,"amlRate":57.84313725490196,"change":-2,"changeRate":-1.9230769230769231},{"date":"2022-09-26","short":"09/26","transactions":59,"aml":37,"amlRate":62.71186440677966,"change":-43,"changeRate":-42.15686274509804},{"date":"2022-09-27","short":"09/27","transactions":25,"aml":14,"amlRate":56.0,"change":-34,"changeRate":-57.6271186440678},{"date":"2022-09-28","short":"09/28","transactions":7,"aml":3,"amlRate":42.857142857142854,"change":-18,"changeRate":-72.0}],"weekday":[{"label":"Mon","transactions":3860093,"aml":4774},{"label":"Tue","transactions":3858596,"aml":4822},{"label":"Wed","transactions":3862565,"aml":4749},{"label":"Thu","transactions":8327323,"aml":5647},{"label":"Fri","transactions":8664262,"aml":6030},{"label":"Sat","transactions":1662956,"aml":4718},{"label":"Sun","transactions":1662443,"aml":4490}],"formats":[{"label":"Cheque","transactions":12280058,"aml":2220,"normal":12277838,"amlRate":0.018078090510647425},{"label":"Credit Card","transactions":8777816,"aml":1354,"normal":8776462,"amlRate":0.01542524928752209},{"label":"ACH","transactions":3868410,"aml":30746,"normal":3837664,"amlRate":0.7947968286712112},{"label":"Cash","transactions":3217531,"aml":666,"normal":3216865,"amlRate":0.020699101267400377},{"label":"Reinvestment","transactions":1945611,"aml":0,"normal":1945611,"amlRate":0.0},{"label":"Wire","transactions":1119774,"aml":0,"normal":1119774,"amlRate":0.0},{"label":"Bitcoin","transactions":689038,"aml":244,"normal":688794,"amlRate":0.03541168992131058}],"banks":[{"bank":"National Bank of Indianapolis","sent":2960783,"received":18528,"total":2979311,"aml":4196,"amlRate":0.14083793199165848},{"bank":"France Bank #62","sent":166485,"received":74056,"total":240541,"aml":423,"amlRate":0.17585359668414116},{"bank":"Bank of Miami","sent":164584,"received":71382,"total":235966,"aml":518,"amlRate":0.21952315164049058},{"bank":"UK Bank #1","sent":149819,"received":84132,"total":233951,"aml":269,"amlRate":0.11498134224688075},{"bank":"Hearthstone Bancorp","sent":159908,"received":61261,"total":221169,"aml":567,"amlRate":0.2563650421171141},{"bank":"National Bank of Los Angeles","sent":157093,"received":58812,"total":215905,"aml":587,"amlRate":0.2718788355989903},{"bank":"Mexico Bank #27","sent":98772,"received":58720,"total":157492,"aml":45,"amlRate":0.02857287989231199},{"bank":"Australia Bank #3","sent":91374,"received":48049,"total":139423,"aml":170,"amlRate":0.12193110175509063},{"bank":"Spain Bank #32","sent":93344,"received":42204,"total":135548,"aml":251,"amlRate":0.18517425561424736},{"bank":"Russia Bank #72","sent":85704,"received":48994,"total":134698,"aml":153,"amlRate":0.11358743262706202},{"bank":"India Bank #45","sent":83707,"received":47570,"total":131277,"aml":141,"amlRate":0.10740647638200142},{"bank":"Brazil Bank #49","sent":79976,"received":47860,"total":127836,"aml":35,"amlRate":0.02737882912481617},{"bank":"China Bank #23","sent":85366,"received":42344,"total":127710,"aml":231,"amlRate":0.18087855297157623},{"bank":"Spain Bank #56","sent":84230,"received":38245,"total":122475,"aml":285,"amlRate":0.23270055113288426},{"bank":"UK Bank #32","sent":75996,"received":40451,"total":116447,"aml":293,"amlRate":0.25161661528420654},{"bank":"Australia Bank #53","sent":71519,"received":38167,"total":109686,"aml":72,"amlRate":0.06564192330835293},{"bank":"Sunrise Community Bank","sent":75445,"received":33197,"total":108642,"aml":306,"amlRate":0.2816590268956757},{"bank":"Brazil Bank #0","sent":70114,"received":37101,"total":107215,"aml":33,"amlRate":0.030779275287972765},{"bank":"First Bank of Dallas","sent":75480,"received":30919,"total":106399,"aml":234,"amlRate":0.2199268790120208},{"bank":"Savings Bank of the South","sent":74440,"received":30100,"total":104540,"aml":223,"amlRate":0.21331547732925196},{"bank":"Oasis Bancorp","sent":67835,"received":30364,"total":98199,"aml":191,"amlRate":0.1945029990122099},{"bank":"Canada Bank #24","sent":62159,"received":31687,"total":93846,"aml":49,"amlRate":0.05221320034950877},{"bank":"Canada Bank #85","sent":60521,"received":31862,"total":92383,"aml":41,"amlRate":0.044380459608369505},{"bank":"National Bank of New Orleans","sent":62907,"received":29140,"total":92047,"aml":186,"amlRate":0.20207068128238834},{"bank":"First Bank of Plattsburg","sent":59931,"received":29074,"total":89005,"aml":194,"amlRate":0.21796528284927813},{"bank":"Savings Bank of Indianapolis","sent":60285,"received":28346,"total":88631,"aml":176,"amlRate":0.19857611896514762},{"bank":"India Bank #84","sent":54039,"received":32360,"total":86399,"aml":110,"amlRate":0.1273162883829674},{"bank":"Savings Bank of Seattle","sent":57903,"received":27947,"total":85850,"aml":182,"amlRate":0.2119976703552708},{"bank":"Brook Savings Bank","sent":57053,"received":28519,"total":85572,"aml":117,"amlRate":0.13672696676482962},{"bank":"Future Bancorp","sent":58013,"received":26544,"total":84557,"aml":156,"amlRate":0.18449093510886147},{"bank":"Japan Bank #28","sent":55332,"received":29183,"total":84515,"aml":46,"amlRate":0.05442820801041235},{"bank":"Baltech Bancorp","sent":55845,"received":26225,"total":82070,"aml":138,"amlRate":0.16814914097721456},{"bank":"Italy Bank #270","sent":57957,"received":23125,"total":81082,"aml":287,"amlRate":0.353962655089909},{"bank":"France Bank #59","sent":57024,"received":23630,"total":80654,"aml":261,"amlRate":0.3236045329431894},{"bank":"First Bank of Tuscon","sent":54356,"received":26227,"total":80583,"aml":106,"amlRate":0.13154139210503457},{"bank":"Portugal Bank #19","sent":56666,"received":23622,"total":80288,"aml":243,"amlRate":0.3026604224790753},{"bank":"Baltech Community Bank","sent":52715,"received":27140,"total":79855,"aml":164,"amlRate":0.20537223717988856},{"bank":"National Bank of Danbury","sent":53694,"received":25577,"total":79271,"aml":248,"amlRate":0.3128508534016223},{"bank":"China Bank #16","sent":55067,"received":23933,"total":79000,"aml":88,"amlRate":0.11139240506329114},{"bank":"Desert Bancorp","sent":53211,"received":25260,"total":78471,"aml":116,"amlRate":0.14782531126148513},{"bank":"Bank of Fort Wayne","sent":51866,"received":24611,"total":76477,"aml":137,"amlRate":0.17913882605227716},{"bank":"The Pine Bank","sent":51761,"received":24319,"total":76080,"aml":124,"amlRate":0.16298633017875921},{"bank":"Savings Bank of Seattle","sent":51102,"received":24593,"total":75695,"aml":135,"amlRate":0.1783473148820926},{"bank":"Savings Bank of Indianapolis","sent":49719,"received":25953,"total":75672,"aml":109,"amlRate":0.14404271064594565},{"bank":"Oak Cooperative Bank","sent":49337,"received":25470,"total":74807,"aml":126,"amlRate":0.16843343537369498},{"bank":"Savings Bank of Omaha","sent":48371,"received":24837,"total":73208,"aml":130,"amlRate":0.17757622117801333},{"bank":"National Bank of Plattsburg","sent":44932,"received":25276,"total":70208,"aml":123,"amlRate":0.175193710118505},{"bank":"China Bank #55","sent":47802,"received":22118,"total":69920,"aml":100,"amlRate":0.14302059496567507},{"bank":"Fieldstone Cooperative Bank","sent":45153,"received":24161,"total":69314,"aml":81,"amlRate":0.11685950890152062},{"bank":"UK Bank #99","sent":43466,"received":24742,"total":68208,"aml":62,"amlRate":0.09089842833685198},{"bank":"Savings Bank of Watertown","sent":45099,"received":22792,"total":67891,"aml":80,"amlRate":0.11783594290848566},{"bank":"National Bank of Milford","sent":44314,"received":23572,"total":67886,"aml":107,"amlRate":0.15761718174586808},{"bank":"Savings Bank of Bridgeport","sent":43096,"received":24336,"total":67432,"aml":122,"amlRate":0.18092300391505517},{"bank":"Bank of Newport","sent":44350,"received":22978,"total":67328,"aml":73,"amlRate":0.10842442965779468},{"bank":"China Bank #27","sent":43661,"received":22227,"total":65888,"aml":66,"amlRate":0.10016998542982031},{"bank":"Netherlands Bank #346","sent":43424,"received":21307,"total":64731,"aml":154,"amlRate":0.23790764857641625},{"bank":"Germany Bank #414","sent":42437,"received":22258,"total":64695,"aml":188,"amlRate":0.290594327227761},{"bank":"France Bank #306","sent":43952,"received":20370,"total":64322,"aml":113,"amlRate":0.1756786169584279},{"bank":"UK Bank #2","sent":42897,"received":21365,"total":64262,"aml":128,"amlRate":0.19918458809249634},{"bank":"Germany Bank #58","sent":43325,"received":20353,"total":63678,"aml":137,"amlRate":0.21514494801972422},{"bank":"Germany Bank #248","sent":42422,"received":20305,"total":62727,"aml":129,"amlRate":0.20565306805681763},{"bank":"China Bank #154","sent":39678,"received":21231,"total":60909,"aml":82,"amlRate":0.1346270666075621},{"bank":"Latvia Bank #63","sent":39669,"received":20848,"total":60517,"aml":117,"amlRate":0.19333410446651353},{"bank":"China Bank #57","sent":39302,"received":20629,"total":59931,"aml":55,"amlRate":0.09177220470207405},{"bank":"Germany Bank #99","sent":39872,"received":19945,"total":59817,"aml":103,"amlRate":0.1721918518147015},{"bank":"Germany Bank #247","sent":39815,"received":19720,"total":59535,"aml":128,"amlRate":0.21499958007894515},{"bank":"China Bank #32","sent":37050,"received":21749,"total":58799,"aml":67,"amlRate":0.11394751611421963},{"bank":"Israel Bank #18","sent":38747,"received":19024,"total":57771,"aml":43,"amlRate":0.07443180834674837},{"bank":"Israel Bank #37","sent":37826,"received":19888,"total":57714,"aml":62,"amlRate":0.10742627438749697},{"bank":"National Bank of Butte","sent":36492,"received":21217,"total":57709,"aml":83,"amlRate":0.143825053284583},{"bank":"National Bank of Philadelphia","sent":36182,"received":21307,"total":57489,"aml":57,"amlRate":0.09914940249439023},{"bank":"Netherlands Bank #120","sent":37445,"received":19256,"total":56701,"aml":126,"amlRate":0.22221830302816528},{"bank":"Finland Bank #20","sent":37519,"received":19083,"total":56602,"aml":125,"amlRate":0.22084025299459384},{"bank":"Bank of Huron","sent":35022,"received":21537,"total":56559,"aml":95,"amlRate":0.1679661945932566},{"bank":"Golden Cooperative Bank","sent":34857,"received":21601,"total":56458,"aml":76,"amlRate":0.13461334089057353},{"bank":"Australia Bank #54","sent":36650,"received":18762,"total":55412,"aml":51,"amlRate":0.0920378257417166},{"bank":"Mexico Bank #18","sent":35209,"received":20104,"total":55313,"aml":13,"amlRate":0.023502612405763564},{"bank":"Bank of Portland","sent":35461,"received":19600,"total":55061,"aml":97,"amlRate":0.1761682497593578},{"bank":"Netherlands Bank #182","sent":35158,"received":19678,"total":54836,"aml":110,"amlRate":0.20059814720256766},{"bank":"Israel Bank #16","sent":35366,"received":19138,"total":54504,"aml":43,"amlRate":0.07889329223543226}],"risk":[{"bank":"National Bank of Indianapolis","account":"100428660","entity":"2AA207C1D80","sent":1524,"received":4,"total":1528},{"bank":"National Bank of Indianapolis","account":"1004286A8","entity":"2AA1E412530","sent":955,"received":1,"total":956},{"bank":"National Bank of Indianapolis","account":"1004286F0","entity":"2AA1EF90E80","sent":280,"received":0,"total":280},{"bank":"National Bank of Indianapolis","account":"1004289C0","entity":"2AA2053BE70","sent":193,"received":0,"total":193},{"bank":"National Bank of Indianapolis","account":"100428858","entity":"2AA1FAAE9F0","sent":164,"received":0,"total":164},{"bank":"National Bank of Indianapolis","account":"1004287C8","entity":"2AA1F755010","sent":139,"received":1,"total":140},{"bank":"National Bank of Indianapolis","account":"100428810","entity":"2AA1FA6EF30","sent":133,"received":0,"total":133},{"bank":"National Bank of Indianapolis","account":"1004288A0","entity":"2AA2073DA80","sent":126,"received":0,"total":126},{"bank":"National Bank of Indianapolis","account":"100428780","entity":"2AA204AC7D0","sent":114,"received":0,"total":114},{"bank":"National Bank of Indianapolis","account":"1004288E8","entity":"2AA1FE8CF20","sent":113,"received":0,"total":113},{"bank":"National Bank of Indianapolis","account":"100428978","entity":"2AA1FE77150","sent":108,"received":0,"total":108},{"bank":"National Bank of Indianapolis","account":"100428738","entity":"2AA1F3CC8F0","sent":100,"received":0,"total":100},{"bank":"National Bank of Indianapolis","account":"100428930","entity":"2AA20023E90","sent":94,"received":0,"total":94},{"bank":"Russia Bank #82","account":"81C393430","entity":"2AA1F6F5630","sent":46,"received":45,"total":91},{"bank":"Russia Bank #141","account":"81BBEA160","entity":"2AA1F729E30","sent":43,"received":41,"total":84},{"bank":"National Bank of Indianapolis","account":"100428A51","entity":"2AA208AC7D0","sent":75,"received":0,"total":75},{"bank":"National Bank of Indianapolis","account":"100428A08","entity":"2AA219D3C80","sent":72,"received":0,"total":72},{"bank":"Hearthstone Bancorp","account":"800ED43D0","entity":"2AA1CAA0140","sent":29,"received":37,"total":66},{"bank":"UK Bank #144","account":"824BF8940","entity":"2AA1FA00EE0","sent":20,"received":40,"total":60},{"bank":"First Bank of Cleveland","account":"824BF4150","entity":"2AA1D888590","sent":31,"received":28,"total":59},{"bank":"China Bank #325","account":"83000D0D0","entity":"2AA1F1B43C0","sent":33,"received":24,"total":57},{"bank":"Russia Bank #82","account":"81ACBE4A0","entity":"2AA1F6F3050","sent":27,"received":27,"total":54},{"bank":"Spruce Bancorp","account":"8038DA860","entity":"2AA1CE713C0","sent":24,"received":26,"total":50},{"bank":"Bank of Houston","account":"803C25F20","entity":"2AA1CEFB800","sent":27,"received":22,"total":49},{"bank":"Sappo Bank","account":"804682F80","entity":"2AA1CFB5C20","sent":27,"received":21,"total":48},{"bank":"Russia Bank #275","account":"81C38D180","entity":"2AA1F6EEBF0","sent":24,"received":22,"total":46},{"bank":"Russia Bank #82","account":"81C387B50","entity":"2AA1F6F55D0","sent":27,"received":19,"total":46},{"bank":"UK Bank #208","account":"824EFD540","entity":"2AA1FA816D0","sent":22,"received":24,"total":46},{"bank":"UK Bank #5","account":"822C3FBE0","entity":"2AA1F8DEC80","sent":23,"received":23,"total":46},{"bank":"Willows Cooperative Bank","account":"81E25E8A0","entity":"2AA1D867250","sent":19,"received":26,"total":45}],"currencies":[{"paid":"US Dollar","received":"US Dollar","pair":"US Dollar → US Dollar","transactions":11430671,"aml":14292,"amlRate":0.12503203005317887},{"paid":"Euro","received":"Euro","pair":"Euro → Euro","transactions":7210831,"aml":9710,"amlRate":0.134658543515997},{"paid":"Yuan","received":"Yuan","pair":"Yuan → Yuan","transactions":2258494,"aml":2775,"amlRate":0.12286948736636007},{"paid":"Shekel","received":"Shekel","pair":"Shekel → Shekel","transactions":1407929,"aml":658,"amlRate":0.04673531122663146},{"paid":"Canadian Dollar","received":"Canadian Dollar","pair":"Canadian Dollar → Canadian Dollar","transactions":1072557,"aml":605,"amlRate":0.05640725854197026},{"paid":"UK Pound","received":"UK Pound","pair":"UK Pound → UK Pound","transactions":1003299,"aml":1629,"amlRate":0.16236435997643772},{"paid":"Ruble","received":"Ruble","pair":"Ruble → Ruble","transactions":973167,"aml":1457,"amlRate":0.1497173660841356},{"paid":"Australian Dollar","received":"Australian Dollar","pair":"Australian Dollar → Australian Dollar","transactions":916834,"aml":737,"amlRate":0.08038532602412214},{"paid":"Yen","received":"Yen","pair":"Yen → Yen","transactions":845439,"aml":1114,"amlRate":0.13176586365190154},{"paid":"Swiss Franc","received":"Swiss Franc","pair":"Swiss Franc → Swiss Franc","transactions":843096,"aml":330,"amlRate":0.0391414500839762},{"paid":"Mexican Peso","received":"Mexican Peso","pair":"Mexican Peso → Mexican Peso","transactions":838922,"aml":346,"amlRate":0.04124340522718441},{"paid":"Rupee","received":"Rupee","pair":"Rupee → Rupee","transactions":730221,"aml":830,"amlRate":0.11366421946232716},{"paid":"Bitcoin","received":"Bitcoin","pair":"Bitcoin → Bitcoin","transactions":688694,"aml":244,"amlRate":0.0354293779240127},{"paid":"Brazil Real","received":"Brazil Real","pair":"Brazil Real → Brazil Real","transactions":628744,"aml":279,"amlRate":0.04437418090669652},{"paid":"Saudi Riyal","received":"Saudi Riyal","pair":"Saudi Riyal → Saudi Riyal","transactions":564196,"aml":224,"amlRate":0.03970251472892399},{"paid":"US Dollar","received":"Euro","pair":"US Dollar → Euro","transactions":104209,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"US Dollar","pair":"Euro → US Dollar","transactions":81120,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"US Dollar","pair":"Yuan → US Dollar","transactions":51333,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Yuan","pair":"US Dollar → Yuan","transactions":30457,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Shekel","pair":"US Dollar → Shekel","transactions":15152,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"UK Pound","pair":"US Dollar → UK Pound","transactions":12588,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Canadian Dollar","pair":"US Dollar → Canadian Dollar","transactions":12239,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Ruble","pair":"US Dollar → Ruble","transactions":11975,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Yen","pair":"US Dollar → Yen","transactions":10965,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Australian Dollar","pair":"US Dollar → Australian Dollar","transactions":10731,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"US Dollar","pair":"UK Pound → US Dollar","transactions":10263,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Swiss Franc","pair":"US Dollar → Swiss Franc","transactions":9899,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Mexican Peso","pair":"US Dollar → Mexican Peso","transactions":9646,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Rupee","pair":"US Dollar → Rupee","transactions":8948,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Bitcoin","pair":"US Dollar → Bitcoin","transactions":7347,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Euro","pair":"Yuan → Euro","transactions":7015,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Brazil Real","pair":"US Dollar → Brazil Real","transactions":6949,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"US Dollar","pair":"Yen → US Dollar","transactions":6927,"aml":0,"amlRate":0.0},{"paid":"US Dollar","received":"Saudi Riyal","pair":"US Dollar → Saudi Riyal","transactions":6473,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"US Dollar","pair":"Rupee → US Dollar","transactions":5465,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Yuan","pair":"Euro → Yuan","transactions":5084,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"US Dollar","pair":"Canadian Dollar → US Dollar","transactions":3578,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Shekel","pair":"Euro → Shekel","transactions":2142,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Canadian Dollar","pair":"Euro → Canadian Dollar","transactions":2095,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Ruble","pair":"Euro → Ruble","transactions":2026,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Yen","pair":"Euro → Yen","transactions":2025,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"UK Pound","pair":"Euro → UK Pound","transactions":1892,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Euro","pair":"UK Pound → Euro","transactions":1833,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Australian Dollar","pair":"Euro → Australian Dollar","transactions":1705,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Shekel","pair":"Yuan → Shekel","transactions":1650,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"UK Pound","pair":"Yuan → UK Pound","transactions":1643,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Mexican Peso","pair":"Euro → Mexican Peso","transactions":1490,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Canadian Dollar","pair":"Yuan → Canadian Dollar","transactions":1421,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Ruble","pair":"Yuan → Ruble","transactions":1405,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Yen","pair":"Yuan → Yen","transactions":1377,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Rupee","pair":"Euro → Rupee","transactions":1336,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"US Dollar","pair":"Mexican Peso → US Dollar","transactions":1313,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Swiss Franc","pair":"Euro → Swiss Franc","transactions":1286,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Brazil Real","pair":"Euro → Brazil Real","transactions":1212,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Swiss Franc","pair":"Yuan → Swiss Franc","transactions":1199,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Euro","pair":"Yen → Euro","transactions":1187,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Australian Dollar","pair":"Yuan → Australian Dollar","transactions":1166,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"US Dollar","pair":"Ruble → US Dollar","transactions":1132,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Bitcoin","pair":"Euro → Bitcoin","transactions":1059,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Euro","pair":"Rupee → Euro","transactions":1049,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Mexican Peso","pair":"Yuan → Mexican Peso","transactions":873,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Brazil Real","pair":"Yuan → Brazil Real","transactions":861,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Rupee","pair":"Yuan → Rupee","transactions":858,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"US Dollar","pair":"Swiss Franc → US Dollar","transactions":829,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"US Dollar","pair":"Australian Dollar → US Dollar","transactions":808,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Saudi Riyal","pair":"Yuan → Saudi Riyal","transactions":698,"aml":0,"amlRate":0.0},{"paid":"Euro","received":"Saudi Riyal","pair":"Euro → Saudi Riyal","transactions":655,"aml":0,"amlRate":0.0},{"paid":"Yuan","received":"Bitcoin","pair":"Yuan → Bitcoin","transactions":645,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Mexican Peso","pair":"UK Pound → Mexican Peso","transactions":613,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Euro","pair":"Ruble → Euro","transactions":577,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Euro","pair":"Canadian Dollar → Euro","transactions":575,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Euro","pair":"Mexican Peso → Euro","transactions":535,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Euro","pair":"Australian Dollar → Euro","transactions":495,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Yuan","pair":"UK Pound → Yuan","transactions":478,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Canadian Dollar","pair":"UK Pound → Canadian Dollar","transactions":475,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Ruble","pair":"Yen → Ruble","transactions":446,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Shekel","pair":"UK Pound → Shekel","transactions":428,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"US Dollar","pair":"Brazil Real → US Dollar","transactions":345,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Australian Dollar","pair":"Canadian Dollar → Australian Dollar","transactions":335,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Swiss Franc","pair":"UK Pound → Swiss Franc","transactions":330,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Yuan","pair":"Yen → Yuan","transactions":328,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Yuan","pair":"Canadian Dollar → Yuan","transactions":315,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"UK Pound","pair":"Yen → UK Pound","transactions":305,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"US Dollar","pair":"Shekel → US Dollar","transactions":295,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Shekel","pair":"Canadian Dollar → Shekel","transactions":290,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Shekel","pair":"Yen → Shekel","transactions":268,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Mexican Peso","pair":"Yen → Mexican Peso","transactions":267,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Shekel","pair":"Rupee → Shekel","transactions":248,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Bitcoin","pair":"UK Pound → Bitcoin","transactions":244,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Euro","pair":"Swiss Franc → Euro","transactions":244,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Ruble","pair":"Rupee → Ruble","transactions":240,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Canadian Dollar","pair":"Rupee → Canadian Dollar","transactions":236,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Swiss Franc","pair":"Canadian Dollar → Swiss Franc","transactions":233,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Euro","pair":"Shekel → Euro","transactions":231,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Yuan","pair":"Rupee → Yuan","transactions":226,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Swiss Franc","pair":"Yen → Swiss Franc","transactions":221,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Australian Dollar","pair":"UK Pound → Australian Dollar","transactions":208,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Euro","pair":"Brazil Real → Euro","transactions":203,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Saudi Riyal","pair":"Rupee → Saudi Riyal","transactions":197,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Mexican Peso","pair":"Rupee → Mexican Peso","transactions":193,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Brazil Real","pair":"Yen → Brazil Real","transactions":174,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Australian Dollar","pair":"Yen → Australian Dollar","transactions":171,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Swiss Franc","pair":"Rupee → Swiss Franc","transactions":158,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Shekel","pair":"Swiss Franc → Shekel","transactions":157,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Australian Dollar","pair":"Rupee → Australian Dollar","transactions":147,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Canadian Dollar","pair":"Yen → Canadian Dollar","transactions":141,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Yuan","pair":"Ruble → Yuan","transactions":139,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Swiss Franc","pair":"Mexican Peso → Swiss Franc","transactions":138,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Brazil Real","pair":"Rupee → Brazil Real","transactions":132,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Canadian Dollar","pair":"Ruble → Canadian Dollar","transactions":130,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Saudi Riyal","pair":"UK Pound → Saudi Riyal","transactions":130,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Brazil Real","pair":"UK Pound → Brazil Real","transactions":124,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Shekel","pair":"Mexican Peso → Shekel","transactions":115,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Mexican Peso","pair":"Canadian Dollar → Mexican Peso","transactions":111,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"UK Pound","pair":"Rupee → UK Pound","transactions":111,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Rupee","pair":"Yen → Rupee","transactions":110,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Euro","pair":"Saudi Riyal → Euro","transactions":109,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"US Dollar","pair":"Saudi Riyal → US Dollar","transactions":107,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Shekel","pair":"Australian Dollar → Shekel","transactions":105,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Yen","pair":"UK Pound → Yen","transactions":103,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Saudi Riyal","pair":"Canadian Dollar → Saudi Riyal","transactions":102,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Yuan","pair":"Swiss Franc → Yuan","transactions":96,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Yuan","pair":"Mexican Peso → Yuan","transactions":86,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Saudi Riyal","pair":"Swiss Franc → Saudi Riyal","transactions":86,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Bitcoin","pair":"Canadian Dollar → Bitcoin","transactions":80,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Brazil Real","pair":"Canadian Dollar → Brazil Real","transactions":79,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Mexican Peso","pair":"Ruble → Mexican Peso","transactions":79,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Euro","pair":"Bitcoin → Euro","transactions":77,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Saudi Riyal","pair":"Yen → Saudi Riyal","transactions":76,"aml":0,"amlRate":0.0},{"paid":"Yen","received":"Bitcoin","pair":"Yen → Bitcoin","transactions":72,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Yen","pair":"Rupee → Yen","transactions":71,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Yuan","pair":"Australian Dollar → Yuan","transactions":65,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Shekel","pair":"Brazil Real → Shekel","transactions":61,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"UK Pound","pair":"Ruble → UK Pound","transactions":60,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"US Dollar","pair":"Bitcoin → US Dollar","transactions":55,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Bitcoin","pair":"Shekel → Bitcoin","transactions":51,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Bitcoin","pair":"Swiss Franc → Bitcoin","transactions":49,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Saudi Riyal","pair":"Mexican Peso → Saudi Riyal","transactions":48,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Mexican Peso","pair":"Australian Dollar → Mexican Peso","transactions":45,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Shekel","pair":"Ruble → Shekel","transactions":43,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"UK Pound","pair":"Canadian Dollar → UK Pound","transactions":42,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Yen","pair":"Ruble → Yen","transactions":42,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Brazil Real","pair":"Australian Dollar → Brazil Real","transactions":42,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Swiss Franc","pair":"Brazil Real → Swiss Franc","transactions":42,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Australian Dollar","pair":"Ruble → Australian Dollar","transactions":34,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Brazil Real","pair":"Ruble → Brazil Real","transactions":34,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Swiss Franc","pair":"Australian Dollar → Swiss Franc","transactions":33,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Shekel","pair":"Saudi Riyal → Shekel","transactions":32,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Yuan","pair":"Shekel → Yuan","transactions":32,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Saudi Riyal","pair":"Australian Dollar → Saudi Riyal","transactions":31,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"UK Pound","pair":"Shekel → UK Pound","transactions":31,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Saudi Riyal","pair":"Shekel → Saudi Riyal","transactions":29,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Bitcoin","pair":"Australian Dollar → Bitcoin","transactions":28,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Bitcoin","pair":"Brazil Real → Bitcoin","transactions":28,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Yen","pair":"Canadian Dollar → Yen","transactions":27,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Rupee","pair":"Ruble → Rupee","transactions":27,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Yen","pair":"Australian Dollar → Yen","transactions":27,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Canadian Dollar","pair":"Australian Dollar → Canadian Dollar","transactions":26,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Swiss Franc","pair":"Ruble → Swiss Franc","transactions":25,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Ruble","pair":"UK Pound → Ruble","transactions":25,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Brazil Real","pair":"Mexican Peso → Brazil Real","transactions":25,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Yen","pair":"Shekel → Yen","transactions":24,"aml":0,"amlRate":0.0},{"paid":"Rupee","received":"Bitcoin","pair":"Rupee → Bitcoin","transactions":24,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Yuan","pair":"Brazil Real → Yuan","transactions":23,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Bitcoin","pair":"Ruble → Bitcoin","transactions":22,"aml":0,"amlRate":0.0},{"paid":"UK Pound","received":"Rupee","pair":"UK Pound → Rupee","transactions":22,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Ruble","pair":"Canadian Dollar → Ruble","transactions":20,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Canadian Dollar","pair":"Bitcoin → Canadian Dollar","transactions":20,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Bitcoin","pair":"Mexican Peso → Bitcoin","transactions":18,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Canadian Dollar","pair":"Shekel → Canadian Dollar","transactions":18,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Yuan","pair":"Saudi Riyal → Yuan","transactions":17,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"UK Pound","pair":"Australian Dollar → UK Pound","transactions":17,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Canadian Dollar","pair":"Mexican Peso → Canadian Dollar","transactions":16,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Yen","pair":"Bitcoin → Yen","transactions":15,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"UK Pound","pair":"Mexican Peso → UK Pound","transactions":15,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Swiss Franc","pair":"Shekel → Swiss Franc","transactions":15,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Saudi Riyal","pair":"Brazil Real → Saudi Riyal","transactions":15,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"UK Pound","pair":"Swiss Franc → UK Pound","transactions":15,"aml":0,"amlRate":0.0},{"paid":"Canadian Dollar","received":"Rupee","pair":"Canadian Dollar → Rupee","transactions":14,"aml":0,"amlRate":0.0},{"paid":"Ruble","received":"Saudi Riyal","pair":"Ruble → Saudi Riyal","transactions":14,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Mexican Peso","pair":"Shekel → Mexican Peso","transactions":14,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Australian Dollar","pair":"Shekel → Australian Dollar","transactions":13,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Rupee","pair":"Swiss Franc → Rupee","transactions":13,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Brazil Real","pair":"Shekel → Brazil Real","transactions":12,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Bitcoin","pair":"Saudi Riyal → Bitcoin","transactions":11,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Rupee","pair":"Australian Dollar → Rupee","transactions":11,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Yen","pair":"Swiss Franc → Yen","transactions":11,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Yen","pair":"Mexican Peso → Yen","transactions":10,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Rupee","pair":"Mexican Peso → Rupee","transactions":10,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Canadian Dollar","pair":"Brazil Real → Canadian Dollar","transactions":10,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Canadian Dollar","pair":"Swiss Franc → Canadian Dollar","transactions":10,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Brazil Real","pair":"Swiss Franc → Brazil Real","transactions":10,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Yen","pair":"Saudi Riyal → Yen","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Yuan","pair":"Bitcoin → Yuan","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Brazil Real","pair":"Bitcoin → Brazil Real","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Rupee","pair":"Shekel → Rupee","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"UK Pound","pair":"Brazil Real → UK Pound","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Yen","pair":"Brazil Real → Yen","transactions":9,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"UK Pound","pair":"Bitcoin → UK Pound","transactions":8,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Mexican Peso","pair":"Brazil Real → Mexican Peso","transactions":8,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"UK Pound","pair":"Saudi Riyal → UK Pound","transactions":7,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Mexican Peso","pair":"Bitcoin → Mexican Peso","transactions":7,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Rupee","pair":"Brazil Real → Rupee","transactions":7,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Australian Dollar","pair":"Bitcoin → Australian Dollar","transactions":6,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Rupee","pair":"Bitcoin → Rupee","transactions":5,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Australian Dollar","pair":"Brazil Real → Australian Dollar","transactions":5,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Canadian Dollar","pair":"Saudi Riyal → Canadian Dollar","transactions":4,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Brazil Real","pair":"Saudi Riyal → Brazil Real","transactions":4,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Swiss Franc","pair":"Bitcoin → Swiss Franc","transactions":4,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Australian Dollar","pair":"Mexican Peso → Australian Dollar","transactions":4,"aml":0,"amlRate":0.0},{"paid":"Shekel","received":"Ruble","pair":"Shekel → Ruble","transactions":4,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Australian Dollar","pair":"Saudi Riyal → Australian Dollar","transactions":3,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Rupee","pair":"Saudi Riyal → Rupee","transactions":3,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Ruble","pair":"Bitcoin → Ruble","transactions":3,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Ruble","pair":"Swiss Franc → Ruble","transactions":3,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Mexican Peso","pair":"Saudi Riyal → Mexican Peso","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Bitcoin","received":"Shekel","pair":"Bitcoin → Shekel","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Australian Dollar","received":"Ruble","pair":"Australian Dollar → Ruble","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Mexican Peso","received":"Ruble","pair":"Mexican Peso → Ruble","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Australian Dollar","pair":"Swiss Franc → Australian Dollar","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Swiss Franc","received":"Mexican Peso","pair":"Swiss Franc → Mexican Peso","transactions":2,"aml":0,"amlRate":0.0},{"paid":"Saudi Riyal","received":"Swiss Franc","pair":"Saudi Riyal → Swiss Franc","transactions":1,"aml":0,"amlRate":0.0},{"paid":"Brazil Real","received":"Ruble","pair":"Brazil Real → Ruble","transactions":1,"aml":0,"amlRate":0.0}],"patterns":[{"pattern":"GATHER-SCATTER","attempts":322,"transactions":4289,"perAttempt":13.319875776397515,"minSequence":1,"maxSequence":31},{"pattern":"SCATTER-GATHER","attempts":331,"transactions":3988,"perAttempt":12.04833836858006,"minSequence":1,"maxSequence":32},{"pattern":"STACK","attempts":336,"transactions":3986,"perAttempt":11.863095238095237,"minSequence":1,"maxSequence":30},{"pattern":"FAN-IN","attempts":355,"transactions":2315,"perAttempt":6.52112676056338,"minSequence":1,"maxSequence":16},{"pattern":"CYCLE","attempts":367,"transactions":2235,"perAttempt":6.08991825613079,"minSequence":1,"maxSequence":13},{"pattern":"BIPARTITE","attempts":369,"transactions":2135,"perAttempt":5.78590785907859,"minSequence":1,"maxSequence":15},{"pattern":"FAN-OUT","attempts":345,"transactions":2128,"perAttempt":6.168115942028986,"minSequence":1,"maxSequence":16},{"pattern":"RANDOM","attempts":331,"transactions":1667,"perAttempt":5.0362537764350455,"minSequence":1,"maxSequence":12}],"batches":[{"batch":1,"loadType":"FULL","status":"COMPLETED","duration":59.2,"inserted":31898238,"rejected":0,"validation":"PASSED","completedAt":"2026-07-21 01:00:36"},{"batch":2,"loadType":"INCREMENTAL","status":"COMPLETED","duration":0.64,"inserted":0,"rejected":0,"validation":"PASSED","completedAt":"2026-07-21 01:03:21"},{"batch":3,"loadType":"FULL","status":"COMPLETED","duration":56.75,"inserted":0,"rejected":0,"validation":"PASSED","completedAt":"2026-07-22 22:05:38"},{"batch":4,"loadType":"INCREMENTAL","status":"COMPLETED","duration":0.87,"inserted":0,"rejected":0,"validation":"PASSED","completedAt":"2026-07-22 22:23:29"}],"validations":[{"batch":4,"check":"Unknown Dimension Lookup","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Transaction Row Count","source":31898238.0,"target":31898238.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Self Transfer Count","source":2561860.0,"target":2561860.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Payment Amount By Currency","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Pattern Row Count","source":22743.0,"target":22743.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Laundering Count","source":35230.0,"target":35230.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Current Account Count","source":2087786.0,"target":2087786.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Cross Currency Count","source":485144.0,"target":485144.0,"difference":0.0,"status":"PASSED"},{"batch":4,"check":"Cross Bank Count","source":29092624.0,"target":29092624.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Unknown Dimension Lookup","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Transaction Row Count","source":31898238.0,"target":31898238.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Self Transfer Count","source":2561860.0,"target":2561860.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Payment Amount By Currency","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Pattern Row Count","source":22743.0,"target":22743.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Laundering Count","source":35230.0,"target":35230.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Current Account Count","source":2087786.0,"target":2087786.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Cross Currency Count","source":485144.0,"target":485144.0,"difference":0.0,"status":"PASSED"},{"batch":3,"check":"Cross Bank Count","source":29092624.0,"target":29092624.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Unknown Dimension Lookup","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Transaction Row Count","source":31898238.0,"target":31898238.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Self Transfer Count","source":2561860.0,"target":2561860.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Payment Amount By Currency","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Pattern Row Count","source":22743.0,"target":22743.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Laundering Count","source":35230.0,"target":35230.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Current Account Count","source":2087786.0,"target":2087786.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Cross Currency Count","source":485144.0,"target":485144.0,"difference":0.0,"status":"PASSED"},{"batch":2,"check":"Cross Bank Count","source":29092624.0,"target":29092624.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Unknown Dimension Lookup","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Transaction Row Count","source":31898238.0,"target":31898238.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Self Transfer Count","source":2561860.0,"target":2561860.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Payment Amount By Currency","source":0.0,"target":0.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Pattern Row Count","source":22743.0,"target":22743.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Laundering Count","source":35230.0,"target":35230.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Current Account Count","source":2087786.0,"target":2087786.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Cross Currency Count","source":485144.0,"target":485144.0,"difference":0.0,"status":"PASSED"},{"batch":1,"check":"Cross Bank Count","source":29092624.0,"target":29092624.0,"difference":0.0,"status":"PASSED"}],"heatmap":{"columns":["Cheque","Credit Card","ACH","Cash","Reinvestment","Wire"],"rows":[{"date":"09/01","values":[1035978,676318,345243,268168,1945611,101916]},{"date":"09/02","values":[1241508,855134,407632,340675,0,113174]},{"date":"09/03","values":[320399,263332,116724,81557,0,28591]},{"date":"09/04","values":[320339,263320,118463,81557,0,28591]},{"date":"09/05","values":[800240,573264,232233,206910,0,73148]},{"date":"09/06","values":[800232,573270,232893,206910,0,73166]},{"date":"09/07","values":[800083,573253,234660,206911,0,73160]},{"date":"09/08","values":[800165,573262,234048,206909,0,73155]},{"date":"09/09","values":[1080168,751910,356208,286551,0,91850]},{"date":"09/10","values":[320114,263321,120245,81554,0,28596]},{"date":"09/11","values":[320142,263323,118125,81554,0,28588]},{"date":"09/12","values":[800264,573250,233920,206903,0,73170]},{"date":"09/13","values":[800118,573253,232393,206901,0,73165]},{"date":"09/14","values":[800170,573249,234849,206902,0,73170]},{"date":"09/15","values":[800098,573247,234142,206900,0,73161]},{"date":"09/16","values":[1240040,855110,409646,340669,0,113173]},{"date":"09/17","values":[0,0,2020,0,0,0]},{"date":"09/18","values":[0,0,1591,0,0,0]},{"date":"09/19","values":[0,0,1194,0,0,0]},{"date":"09/20","values":[0,0,855,0,0,0]},{"date":"09/21","values":[0,0,586,0,0,0]},{"date":"09/22","values":[0,0,309,0,0,0]},{"date":"09/23","values":[0,0,134,0,0,0]},{"date":"09/24","values":[0,0,104,0,0,0]},{"date":"09/25","values":[0,0,102,0,0,0]},{"date":"09/26","values":[0,0,59,0,0,0]},{"date":"09/27","values":[0,0,25,0,0,0]},{"date":"09/28","values":[0,0,7,0,0,0]}]}};
+const COLORS = ["#2563EB","#0891B2","#0F766E","#D97706","#C93C4A","#6D5BD0","#64748B","#15803D"];
+const NAV = [
+  ["01","Executive Overview"],["02","Transaction Trend"],["03","AML Risk"],
+  ["04","Bank Activity"],["05","Currency Flow"],["06","Pattern Analysis"],
+  ["07","ETL & Data Quality"]
+];
+const pageNo = Math.min(7, Math.max(1, Number(new URLSearchParams(location.search).get("page") || 1)));
+
+function fmt(n) {
+  const v = Number(n || 0), a = Math.abs(v);
+  if (a >= 1e9) return (v/1e9).toFixed(2).replace(".",",") + " B";
+  if (a >= 1e6) return (v/1e6).toFixed(2).replace(".",",") + " M";
+  if (a >= 1e3) return (v/1e3).toFixed(1).replace(".",",") + " K";
+  return Math.round(v).toLocaleString("vi-VN");
+}
+function fmtFull(n) { return Math.round(Number(n || 0)).toLocaleString("vi-VN"); }
+function pct(n, d=2) { return Number(n || 0).toFixed(d).replace(".",",") + "%"; }
+function safe(t) { return String(t ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+
+function shell(title, subtitle, page, content) {
+  const nav = NAV.map((item, idx) => `
+    <a class="nav-item ${idx+1===page?"active":""}" href="?page=${idx+1}"
+       ${idx+1===page?'aria-current="page"':""}>
+      <div class="nav-icon">${item[0]}</div><div>${item[1]}</div>
+    </a>`).join("");
+  return `<div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">IB</div><div>
+        <div class="brand-title">Transaction Intelligence</div>
+        <div class="brand-sub">AML MONITORING • HI-MEDIUM</div>
+      </div></div>
+      <div class="nav-label">Report pages</div><div class="nav">${nav}</div>
+      <div class="side-note"><strong>Reporting snapshot</strong>
+        PostgreSQL DW • Import model<br>${DATA.kpi.start} — ${DATA.kpi.end}
+      </div>
+    </aside>
+    <main>
+      <div class="topbar">
+        <div class="title"><h1>${title}</h1><p>${subtitle}</p></div>
+        <div class="report-meta"><strong>IBM AML Analytics</strong><br>Last refresh • 23 Jul 2026</div>
+      </div>
+      <div class="filterbar">
+        <div class="filter-title">FILTERS</div>
+        <div class="filter-chip">Date <b>${DATA.kpi.start.slice(5)} — ${DATA.kpi.end.slice(5)}</b><span>▼</span></div>
+        <div class="filter-chip">Payment currency <b>All</b><span>▼</span></div>
+        <div class="filter-chip">Payment format <b>All</b><span>▼</span></div>
+        <div class="filter-status"><i class="status-dot"></i> Snapshot validated</div>
+      </div>
+      <div class="content">${content}</div>
+    </main>
+  </div>`;
+}
+function kpi(label, value, foot, accent, badge="", badgeClass="blue") {
+  return `<div class="kpi" style="--accent:${accent}"><div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div><div class="kpi-foot"><span>${foot}</span>
+    ${badge?`<span class="pill ${badgeClass}">${badge}</span>`:""}</div></div>`;
+}
+function panel(title, subtitle, body, legend="") {
+  return `<section class="panel"><div class="panel-head"><div>
+    <div class="panel-title">${title}</div><div class="panel-sub">${subtitle}</div></div>${legend}</div>${body}</section>`;
+}
+function legend(items) {
+  return `<div class="legend">${items.map((x,i)=>`<span><i style="background:${x[1]}"></i>${x[0]}</span>`).join("")}</div>`;
+}
+function lineSvg(rows, series, opts={}) {
+  const W=920,H=310,L=64,R=18,T=18,B=42, iw=W-L-R, ih=H-T-B;
+  const values = rows.flatMap(r => series.map(s => Number(r[s.key] || 0)));
+  const max = Math.max(...values,1), min = opts.zero ? 0 : Math.min(...values,0);
+  const range = Math.max(max-min,1);
+  const x = i => L + (rows.length<2?0:i*iw/(rows.length-1));
+  const y = v => T + ih - (v-min)*ih/range;
+  const grids = [0,.25,.5,.75,1].map(p => {
+    const yy=T+ih*p, val=max-(max-min)*p;
+    return `<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#E7EBF1" stroke-width="1"/>
+      <text x="${L-10}" y="${yy+4}" text-anchor="end" font-size="10" fill="#7C8798">${fmt(val)}</text>`;
+  }).join("");
+  const paths = series.map((s,si) => {
+    const pts=rows.map((r,i)=>`${x(i)},${y(Number(r[s.key]||0))}`);
+    let area="";
+    if (si===0 && opts.area) {
+      area=`<polygon points="${L},${T+ih} ${pts.join(" ")} ${W-R},${T+ih}" fill="${s.color}" opacity=".08"/>`;
+    }
+    return `${area}<polyline points="${pts.join(" ")}" fill="none" stroke="${s.color}" stroke-width="${si===0?3:2}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join("");
+  const labels = [0,Math.floor((rows.length-1)/2),rows.length-1].map(i =>
+    `<text x="${x(i)}" y="${H-14}" text-anchor="${i===0?"start":i===rows.length-1?"end":"middle"}" font-size="10" fill="#7C8798">${safe(rows[i]?.short||rows[i]?.date||"")}</text>`
+  ).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grids}${paths}${labels}</svg>`;
+}
+function comboSvg(rows) {
+  const W=920,H=310,L=64,R=18,T=18,B=42, iw=W-L-R, ih=H-T-B;
+  const txMax=Math.max(...rows.map(r=>r.transactions),1), amlMax=Math.max(...rows.map(r=>r.aml),1);
+  const step=iw/rows.length, bw=Math.max(5,step*.55);
+  const bars=rows.map((r,i)=>{
+    const h=r.transactions/txMax*ih, xx=L+i*step+(step-bw)/2;
+    return `<rect x="${xx}" y="${T+ih-h}" width="${bw}" height="${h}" rx="2" fill="#C9D8F8"/>`;
+  }).join("");
+  const points=rows.map((r,i)=>`${L+i*step+step/2},${T+ih-r.aml/amlMax*ih}`);
+  const grids=[0,.25,.5,.75,1].map(p=>`<line x1="${L}" y1="${T+ih*p}" x2="${W-R}" y2="${T+ih*p}" stroke="#E7EBF1"/>`).join("");
+  const labels=[0,Math.floor((rows.length-1)/2),rows.length-1].map(i=>`<text x="${L+i*step+step/2}" y="${H-14}" text-anchor="middle" font-size="10" fill="#7C8798">${rows[i].short}</text>`).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grids}${bars}
+    <polyline points="${points.join(" ")}" fill="none" stroke="#C93C4A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${labels}</svg>`;
+}
+function barList(rows, labelKey, valueKey, color, limit=10) {
+  const data=rows.slice(0,limit), max=Math.max(...data.map(r=>Number(r[valueKey]||0)),1);
+  return `<div class="bar-list">${data.map(r=>`<div class="bar-row">
+    <div class="bar-label" title="${safe(r[labelKey])}">${safe(r[labelKey])}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${100*Number(r[valueKey]||0)/max}%;background:${color}"></div></div>
+    <div class="bar-value">${fmt(r[valueKey])}</div></div>`).join("")}</div>`;
+}
+function stackList(rows, labelKey, aKey, bKey, colors, limit=8) {
+  const data=rows.slice(0,limit), max=Math.max(...data.map(r=>Number(r[aKey])+Number(r[bKey])),1);
+  return `<div class="stack-list">${data.map(r=>{
+    const a=Number(r[aKey]),b=Number(r[bKey]),total=a+b;
+    return `<div class="stack-row"><div class="bar-label">${safe(r[labelKey])}</div>
+      <div class="stack-track" style="width:${Math.max(5,100*total/max)}%"><i style="width:${100*a/total}%;background:${colors[0]}"></i><i style="width:${100*b/total}%;background:${colors[1]}"></i></div>
+      <div class="bar-value">${fmt(total)}</div></div>`;
+  }).join("")}</div>`;
+}
+function donut(rows, labelKey, valueKey, limit=5) {
+  const data=rows.slice(0,limit), total=data.reduce((s,r)=>s+Number(r[valueKey]),0);
+  let cursor=0; const stops=data.map((r,i)=>{ const next=cursor+100*Number(r[valueKey])/total; const part=`${COLORS[i]} ${cursor}% ${next}%`; cursor=next; return part; });
+  return `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${stops.join(",")})">
+    <div class="donut-center"><strong>${fmt(total)}</strong><span>Top ${limit}</span></div></div>
+    <div class="donut-legend">${data.map((r,i)=>`<div><i style="background:${COLORS[i]}"></i><span>${safe(r[labelKey])}</span><b>${pct(100*Number(r[valueKey])/total,1)}</b></div>`).join("")}</div></div>`;
+}
+function scatter(rows, xKey, yKey, sizeKey, labelKey, color) {
+  const W=760,H=300,L=60,R=24,T=18,B=40, iw=W-L-R, ih=H-T-B;
+  const xmax=Math.max(...rows.map(r=>Number(r[xKey])),1), ymax=Math.max(...rows.map(r=>Number(r[yKey])),1), smax=Math.max(...rows.map(r=>Number(r[sizeKey])),1);
+  const grids=[0,.25,.5,.75,1].map(p=>`<line x1="${L}" y1="${T+ih*p}" x2="${W-R}" y2="${T+ih*p}" stroke="#E7EBF1"/>`).join("");
+  const dots=rows.map((r,i)=>{
+    const x=L+Number(r[xKey])/xmax*iw, y=T+ih-Number(r[yKey])/ymax*ih, rad=4+10*Math.sqrt(Number(r[sizeKey])/smax);
+    return `<circle cx="${x}" cy="${y}" r="${rad}" fill="${color}" opacity="${.35+(i<12?.35:0)}"><title>${safe(r[labelKey])}: ${fmt(r[xKey])} • ${pct(r[yKey])}</title></circle>`;
+  }).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grids}${dots}
+    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="10" fill="#7C8798">Activity volume</text>
+    <text x="13" y="${H/2}" text-anchor="middle" transform="rotate(-90 13 ${H/2})" font-size="10" fill="#7C8798">AML rate</text></svg>`;
+}
+function heatmap(data) {
+  const vals=data.rows.flatMap(r=>r.values), max=Math.max(...vals,1), rows=data.rows.slice(-16);
+  return `<div class="heatmap"><div class="heat-head"><div>Date</div>${data.columns.map(x=>`<div>${safe(x)}</div>`).join("")}</div>
+    ${rows.map(r=>`<div class="heat-row"><div class="heat-label">${r.date}</div>${r.values.map(v=>{
+      const opacity=.16+.84*v/max; return `<div style="background:rgba(37,99,235,${opacity})">${v>max*.7?fmt(v):""}</div>`;
+    }).join("")}</div>`).join("")}</div>`;
+}
+function table(headers, rows) {
+  return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th class="${h.num?"num":""}">${h.label}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(row=>`<tr>${row.map((cell,i)=>`<td class="${headers[i].num?"num":""}">${cell}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function heatColor(v,max) {
+  const a=.12+.78*Number(v)/Math.max(max,1); return `rgba(201,60,74,${a})`;
+}
+
+function page1() {
+  const k=DATA.kpi, crossBank=100*k.crossBank/k.transactions, crossCurrency=100*k.crossCurrency/k.transactions, self=100*k.selfTransfer/k.transactions;
+  const cards=`<div class="kpi-row six">
+    ${kpi("Transactions",fmt(k.transactions),"28-day population","#2563EB","FULL","blue")}
+    ${kpi("Laundering",fmtFull(k.aml),"Known AML labels","#C93C4A","RISK","red")}
+    ${kpi("AML rate",pct(k.amlRate),"of all transactions","#C93C4A")}
+    ${kpi("Cross-bank",pct(crossBank),"transaction share","#0891B2")}
+    ${kpi("Cross-currency",pct(crossCurrency),"transaction share","#6D5BD0")}
+    ${kpi("Self-transfer",pct(self),"transaction share","#D97706")}
+  </div>`;
+  const r1=`<div class="row two-one" style="height:405px">
+    ${panel("Transaction volume","Daily transactions with AML overlay",comboSvg(DATA.daily),legend([["Transactions","#C9D8F8"],["AML","#C93C4A"]]))}
+    ${panel("Payment-format mix","Share of transaction volume",donut(DATA.formats,"label","transactions",5))}
+  </div>`;
+  const normalTotal=k.transactions-k.aml;
+  const r2=`<div class="row two-one" style="height:308px">
+    ${panel("AML exposure by payment format","AML transactions compared across formats",barList([...DATA.formats].sort((a,b)=>b.aml-a.aml),"label","aml","#C93C4A",7))}
+    ${panel("Portfolio signal","A concise interpretation of the loaded population",`
+      <div class="mini-metric-grid">
+        <div class="mini-metric"><span>Non-laundering transactions</span><strong>${fmt(normalTotal)}</strong></div>
+        <div class="mini-metric"><span>Average AML transactions/day</span><strong>${fmt(k.aml/DATA.daily.length)}</strong></div>
+      </div>
+      <div class="insight" style="margin-top:13px"><strong>Reading note</strong>
+      The AML rate is low at portfolio level. Use format, bank, account and corridor pages to locate concentrated exposure rather than treating all high-volume segments as high risk.</div>`)}
+  </div>`;
+  return shell("Executive Overview","Portfolio-level transaction and AML monitoring",1,cards+r1+r2);
+}
+function page2() {
+  const total=DATA.daily.reduce((s,r)=>s+r.transactions,0), aml=DATA.daily.reduce((s,r)=>s+r.aml,0), avg=total/DATA.daily.length;
+  const latest=DATA.daily[DATA.daily.length-1];
+  const cards=`<div class="kpi-row four">
+    ${kpi("Filtered transactions",fmt(total),"Current slicer context","#2563EB")}
+    ${kpi("Filtered AML",fmtFull(aml),"Current slicer context","#C93C4A")}
+    ${kpi("Daily average",fmt(avg),"Transactions/day","#0891B2")}
+    ${kpi("Latest daily change",pct(latest.changeRate),"vs previous day",latest.change>=0?"#15803D":"#C93C4A",latest.change>=0?"UP":"DOWN",latest.change>=0?"green":"red")}
+  </div>`;
+  const r1=`<div class="row seven-five" style="height:394px">
+    ${panel("Daily transaction trend","Area emphasizes volume; the line remains readable at small scale",lineSvg(DATA.daily,[{key:"transactions",color:"#2563EB"}],{area:true}),legend([["Transactions","#2563EB"]]))}
+    ${panel("Volume by weekday","Operational concentration across the week",barList(DATA.weekday,"label","transactions","#0891B2",7))}
+  </div>`;
+  const dailyRows=DATA.daily.slice(-7).reverse().map(r=>[
+    safe(r.date),`<span>${fmtFull(r.transactions)}</span>`,`<span>${fmtFull(r.aml)}</span>`,
+    `<span style="color:${r.change>=0?"#15803D":"#C93C4A"}">${r.change>=0?"+":""}${fmtFull(r.change)}</span>`,pct(r.amlRate)
+  ]);
+  const r2=`<div class="row one-one" style="height:319px">
+    ${panel("Date × payment format heatmap","Darker cells indicate higher transaction volume",heatmap(DATA.heatmap))}
+    ${panel("Last seven days","Detail view for reconciliation and drill-through",table(
+      [{label:"Date"},{label:"Transactions",num:true},{label:"AML",num:true},{label:"Daily Δ",num:true},{label:"AML rate",num:true}],dailyRows))}
+  </div>`;
+  return shell("Transaction Trend","Time-series behavior, weekday profile and granular daily control",2,cards+r1+r2);
+}
+function page3() {
+  const riskAccounts=DATA.risk.length, top=DATA.risk[0], formatRisk=[...DATA.formats].sort((a,b)=>b.amlRate-a.amlRate);
+  const cards=`<div class="kpi-row four">
+    ${kpi("AML transactions",fmtFull(DATA.kpi.aml),"Known laundering labels","#C93C4A")}
+    ${kpi("AML rate",pct(DATA.kpi.amlRate),"Portfolio baseline","#C93C4A")}
+    ${kpi("Risk accounts shown",fmtFull(riskAccounts),"Top-ranked sample","#D97706")}
+    ${kpi("Top account participation",fmtFull(top.total),"Sent + received AML","#6D5BD0")}
+  </div>`;
+  const r1=`<div class="row five-seven" style="height:376px">
+    ${panel("AML rate by payment format","Rate view prevents volume bias",barList(formatRisk,"label","amlRate","#C93C4A",7))}
+    ${panel("Bank activity vs AML rate","Bubble size represents AML participations",scatter(DATA.banks,"total","amlRate","aml","bank","#C93C4A"),
+      legend([["Bank","#C93C4A"]]))}
+  </div>`;
+  const maxRisk=Math.max(...DATA.risk.map(r=>r.total),1);
+  const riskRows=DATA.risk.slice(0,10).map((r,i)=>[
+    String(i+1),safe(r.bank),safe(r.account),safe(r.entity),fmtFull(r.sent),fmtFull(r.received),
+    `<div class="risk-bar"><i style="width:${60*r.total/maxRisk}px"></i><b>${fmtFull(r.total)}</b></div>`
+  ]);
+  const r2=`<div style="height:337px">${panel("Highest-risk accounts","Ranked by AML sent + received participations",table(
+    [{label:"Rank"},{label:"Bank"},{label:"Account"},{label:"Entity"},{label:"Sent",num:true},{label:"Received",num:true},{label:"Total",num:true}],riskRows))}</div>`;
+  return shell("AML Risk","Concentration analysis across payment formats, banks and accounts",3,cards+r1+r2);
+}
+function page4() {
+  const topBanks=DATA.banks.slice(0,12), total=topBanks.reduce((s,r)=>s+r.total,0), aml=topBanks.reduce((s,r)=>s+r.aml,0);
+  const cards=`<div class="kpi-row four">
+    ${kpi("Top-12 participations",fmt(total),"Sent + received","#2563EB")}
+    ${kpi("Top-12 AML participations",fmtFull(aml),"AML sent + received","#C93C4A")}
+    ${kpi("Top-12 AML rate",pct(100*aml/total),"Participation basis","#C93C4A")}
+    ${kpi("Banks in ranked view",fmtFull(DATA.banks.length),"Top activity population","#0891B2")}
+  </div>`;
+  const r1=`<div class="row one-one" style="height:398px">
+    ${panel("Top banks by activity","Total sender and receiver participations",barList(topBanks,"bank","total","#2563EB",10))}
+    ${panel("Sent vs received mix","Composition of participation volume",stackList(topBanks,"bank","sent","received",["#2563EB","#8FB2F5"],10),
+      legend([["Sent","#2563EB"],["Received","#8FB2F5"]]))}
+  </div>`;
+  const bankRows=topBanks.slice(0,9).map((r,i)=>[
+    String(i+1),safe(r.bank),fmtFull(r.sent),fmtFull(r.received),fmtFull(r.total),fmtFull(r.aml),pct(r.amlRate)
+  ]);
+  const r2=`<div class="row five-seven" style="height:315px">
+    ${panel("Activity share","Top-bank concentration",donut(topBanks,"bank","total",5))}
+    ${panel("Bank ranking","Participation is not a distinct transaction count",table(
+      [{label:"Rank"},{label:"Bank"},{label:"Sent",num:true},{label:"Received",num:true},{label:"Total",num:true},{label:"AML",num:true},{label:"AML rate",num:true}],bankRows))}
+  </div>`;
+  return shell("Bank Activity","Sender/receiver participation, concentration and risk comparison",4,cards+r1+r2);
+}
+function page5() {
+  const all=DATA.currencies, total=all.reduce((s,r)=>s+r.transactions,0), aml=all.reduce((s,r)=>s+r.aml,0), top=all[0];
+  const cards=`<div class="kpi-row four">
+    ${kpi("Currency-flow transactions",fmt(total),"All corridors","#6D5BD0")}
+    ${kpi("Currency-flow AML",fmtFull(aml),"All corridors","#C93C4A")}
+    ${kpi("Corridor AML rate",pct(100*aml/total),"Weighted by transactions","#C93C4A")}
+    ${kpi("Largest corridor",safe(top.pair),fmt(top.transactions)+" transactions","#0891B2")}
+  </div>`;
+  const r1=`<div class="row seven-five" style="height:393px">
+    ${panel("Top currency corridors","Ranked by transaction volume",barList(all,"pair","transactions","#6D5BD0",11))}
+    ${panel("Volume vs AML rate","Bubble size represents AML count",scatter(all.slice(0,80),"transactions","amlRate","aml","pair","#6D5BD0"))}
+  </div>`;
+  const paid=[...new Set(all.map(r=>r.paid))].slice(0,8), recv=[...new Set(all.map(r=>r.received))].slice(0,8);
+  const lookup=new Map(all.map(r=>[r.paid+"|"+r.received,r.transactions])), max=Math.max(...all.map(r=>r.transactions),1);
+  const matrix=`<div class="table-wrap"><table><thead><tr><th>Payment ↓ / Receiving →</th>${recv.map(x=>`<th class="num">${safe(x)}</th>`).join("")}</tr></thead><tbody>
+    ${paid.map(p=>`<tr><td>${safe(p)}</td>${recv.map(r=>{const v=lookup.get(p+"|"+r)||0;return `<td class="num" style="background:rgba(109,91,208,${.06+.64*v/max});color:${v/max>.52?"#fff":"#334055"}">${v?fmt(v):"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const topRows=all.slice(0,8).map((r,i)=>[String(i+1),safe(r.paid),safe(r.received),fmtFull(r.transactions),fmtFull(r.aml),pct(r.amlRate)]);
+  const r2=`<div class="row seven-five" style="height:320px">
+    ${panel("Currency-flow matrix","Conditional color shows volume; amounts are intentionally excluded",matrix)}
+    ${panel("Corridor detail","Top routes for drill-through",table(
+      [{label:"Rank"},{label:"Paid"},{label:"Received"},{label:"Transactions",num:true},{label:"AML",num:true},{label:"AML rate",num:true}],topRows))}
+  </div>`;
+  return shell("Currency Flow","Payment-to-receiving currency corridors without invalid cross-currency totals",5,cards+r1+r2);
+}
+function page6() {
+  const p=DATA.patterns, attempts=p.reduce((s,r)=>s+r.attempts,0), tx=p.reduce((s,r)=>s+r.transactions,0), highest=[...p].sort((a,b)=>b.perAttempt-a.perAttempt)[0];
+  const cards=`<div class="kpi-row four">
+    ${kpi("Pattern attempts",fmtFull(attempts),"All known patterns","#6D5BD0")}
+    ${kpi("Pattern transactions",fmtFull(tx),"Pattern-linked rows","#C93C4A")}
+    ${kpi("Transactions / attempt",(tx/attempts).toFixed(2).replace(".",","),"Weighted ratio","#D97706")}
+    ${kpi("Highest-intensity pattern",safe(highest.pattern),highest.perAttempt.toFixed(2).replace(".",",")+" tx/attempt","#0891B2")}
+  </div>`;
+  const r1=`<div class="row one-one" style="height:395px">
+    ${panel("Transactions by pattern","Volume ranking",barList(p,"pattern","transactions","#6D5BD0",8))}
+    ${panel("Attempts by pattern","Attempt frequency is different from transaction volume",barList([...p].sort((a,b)=>b.attempts-a.attempts),"pattern","attempts","#0891B2",8))}
+  </div>`;
+  const patternRows=p.map((r,i)=>[
+    String(i+1),safe(r.pattern),fmtFull(r.attempts),fmtFull(r.transactions),r.perAttempt.toFixed(2).replace(".",","),
+    `${r.minSequence} — ${r.maxSequence}`
+  ]);
+  const r2=`<div class="row five-seven" style="height:318px">
+    ${panel("Pattern composition","Share of pattern-linked transactions",donut(p,"pattern","transactions",5))}
+    ${panel("Pattern detail","Attempt, intensity and sequence boundaries",table(
+      [{label:"Rank"},{label:"Pattern"},{label:"Attempts",num:true},{label:"Transactions",num:true},{label:"Tx / attempt",num:true},{label:"Sequence",num:true}],patternRows))}
+  </div>`;
+  return shell("Laundering Pattern","Attempt frequency, transaction intensity and sequence boundaries",6,cards+r1+r2);
+}
+function page7() {
+  const b=DATA.batches, failed=b.filter(x=>x.status!=="COMPLETED").length, rejected=b.reduce((s,r)=>s+r.rejected,0);
+  const passed=DATA.validations.filter(x=>x.status==="PASSED").length, total=DATA.validations.length;
+  const cards=`<div class="kpi-row four">
+    ${kpi("ETL batches",fmtFull(b.length),"Full + incremental","#2563EB")}
+    ${kpi("Failed batches",fmtFull(failed),"Execution status",failed?"#C93C4A":"#15803D",failed?"CHECK":"PASS",failed?"red":"green")}
+    ${kpi("Rejected rows",fmtFull(rejected),"All monitored batches",rejected?"#C93C4A":"#15803D",rejected?"CHECK":"PASS",rejected?"red":"green")}
+    ${kpi("Validation pass rate",pct(100*passed/total),"Latest validation sample","#15803D","PASS","green")}
+  </div>`;
+  const batchSeries=b.map(x=>({short:"B"+x.batch,duration:x.duration}));
+  const r1=`<div class="row five-seven" style="height:356px">
+    ${panel("Batch duration","Minutes by batch",lineSvg(batchSeries,[{key:"duration",color:"#2563EB"}],{area:true,zero:true}))}
+    ${panel("Batch history","Operational run and validation status",table(
+      [{label:"Batch"},{label:"Load"},{label:"Status"},{label:"Minutes",num:true},{label:"Inserted",num:true},{label:"Reject",num:true},{label:"Validation"}],
+      b.slice().reverse().map(r=>[String(r.batch),safe(r.loadType),`<span class="status ${r.status==="COMPLETED"?"pass":"fail"}">${safe(r.status)}</span>`,
+      r.duration.toFixed(2),fmtFull(r.inserted),fmtFull(r.rejected),`<span class="status ${r.validation==="PASSED"?"pass":"fail"}">${safe(r.validation)}</span>`])))}
+  </div>`;
+  const valRows=DATA.validations.slice(0,11).map(r=>[
+    String(r.batch),safe(r.check),fmtFull(r.source),fmtFull(r.target),fmtFull(r.difference),
+    `<span class="status ${r.status==="PASSED"?"pass":"fail"}">${safe(r.status)}</span>`
+  ]);
+  const r2=`<div class="row seven-five" style="height:357px">
+    ${panel("Validation detail","Source-to-target reconciliation by batch",table(
+      [{label:"Batch"},{label:"Check"},{label:"Source",num:true},{label:"Target",num:true},{label:"Difference",num:true},{label:"Status"}],valRows))}
+    ${panel("Quality controls","Why this page belongs in the submitted project",`
+      <div class="mini-metric-grid">
+        <div class="mini-metric"><span>Validation checks shown</span><strong>${fmtFull(total)}</strong></div>
+        <div class="mini-metric"><span>Checks passed</span><strong>${fmtFull(passed)}</strong></div>
+      </div>
+      <div class="insight" style="margin-top:13px"><strong>Control statement</strong>
+      The dashboard is traceable to ETL batches. A successful business dashboard is not complete until record counts, lookup integrity, rejected rows and validation outcomes are visible.</div>
+      <div class="footer-note">Green status requires both ETL completion and validation pass.</div>`)}
+  </div>`;
+  return shell("ETL & Data Quality","Batch observability, reconciliation and release controls",7,cards+r1+r2);
+}
+
+const pages=[page1,page2,page3,page4,page5,page6,page7];
+document.getElementById("app").innerHTML=pages[pageNo-1]();
+</script>
+</body>
+</html>
