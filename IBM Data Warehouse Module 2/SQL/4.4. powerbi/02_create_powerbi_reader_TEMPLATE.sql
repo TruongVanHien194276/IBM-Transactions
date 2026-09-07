@@ -1,10 +1,9 @@
 /*
-Chạy file này trong DBeaver bằng user quản trị PostgreSQL.
+Chạy file trong DBeaver bằng user quản trị PostgreSQL
 
-QUAN TRỌNG:
-1. Đổi REPLACE_WITH_A_STRONG_LOCAL_PASSWORD thành mật khẩu do bạn tự chọn.
-2. Không đưa mật khẩu thật vào Git, báo cáo, ảnh chụp hoặc file ZIP nộp bài.
-3. Tài khoản chỉ có SELECT trên schema pbi.
+Note:
+1. Đổi REPLACE_WITH_A_STRONG_LOCAL_PASSWORD thành mật khẩu 
+2. Tài khoản chỉ có SELECT trên schema pbi
 */
 
 DO $$

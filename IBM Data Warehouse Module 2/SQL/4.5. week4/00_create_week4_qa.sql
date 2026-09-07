@@ -1,9 +1,9 @@
 /*
-Tuần 4 - Khởi tạo lớp kiểm thử nghiệm thu
+Giai đoạn 4 - Khởi tạo lớp kiểm thử nghiệm thu
 Database: aml_source
 
 Lớp qa chỉ lưu bằng chứng kiểm thử. Script không thay đổi dữ liệu raw, stg, dw,
-mart hoặc pbi.
+mart hoặc pbi
 */
 
 \set ON_ERROR_STOP on

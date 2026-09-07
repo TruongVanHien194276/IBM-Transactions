@@ -1,6 +1,6 @@
 /*
 Validation cho lớp Power BI reporting
-Mọi truy vấn bên dưới phải trả về trạng thái PASS hoặc số lỗi bằng 0.
+Mọi truy vấn bên dưới phải trả về trạng thái PASS hoặc số lỗi bằng 0
 */
 
 SELECT

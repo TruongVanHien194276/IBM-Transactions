@@ -1,12 +1,11 @@
 /*
-Tuần 4 - Các truy vấn ngắn dùng khi demo/bảo vệ
-Mỗi result set trả lời một câu hỏi thường gặp của giảng viên.
+Giai đoạn 4 - Các truy vấn ngắn 
 */
 
 \set ON_ERROR_STOP on
 \pset pager off
 
--- A. Trạng thái nghiệm thu mới nhất.
+-- A. Trạng thái nghiệm thu mới nhất
 SELECT
     test_run_id,
     completed_at,
@@ -16,7 +15,7 @@ SELECT
     status
 FROM qa.v_week4_latest_run;
 
--- B. Các test chưa đạt. Kết quả kỳ vọng: 0 dòng.
+-- B. Các test chưa đạt. Kết quả kỳ vọng: 0 dòng
 SELECT
     category,
     test_code,
@@ -27,11 +26,11 @@ SELECT
 FROM qa.v_week4_latest_results
 WHERE status = 'FAILED';
 
--- C. KPI chính, không cộng lẫn amount của nhiều currency.
+-- C. KPI chính, không cộng lẫn amount của nhiều currency
 SELECT *
 FROM pbi.kpi_overview;
 
--- D. Lịch sử ETL và bằng chứng incremental idempotent.
+-- D. Lịch sử ETL và bằng chứng incremental idempotent
 SELECT
     dw_batch_id,
     load_type,
@@ -46,7 +45,7 @@ SELECT
 FROM pbi.etl_batch_monitor
 ORDER BY dw_batch_id;
 
--- E. Chất lượng dữ liệu và validation gần nhất.
+-- E. Chất lượng dữ liệu và validation gần nhất
 SELECT *
 FROM pbi.data_quality_overview;
 
@@ -65,7 +64,7 @@ WHERE dw_batch_id =
 )
 ORDER BY validation_result_id;
 
--- F. Laundering rate theo payment format.
+-- F. Laundering rate theo payment format
 SELECT
     p.payment_format,
     f.transaction_count,

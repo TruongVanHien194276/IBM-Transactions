@@ -1,8 +1,8 @@
 /*
-Tuần 4 - Bằng chứng hiệu năng
+Giai đoạn 4 - Bằng chứng hiệu năng
 
 Chạy riêng trong DBeaver bằng Execute SQL Script. Các câu lệnh chỉ đọc và dùng
-EXPLAIN ANALYZE để ghi nhận execution time/buffer của truy vấn báo cáo.
+EXPLAIN ANALYZE để ghi nhận execution time/buffer của truy vấn báo cáo
 */
 
 \set ON_ERROR_STOP on

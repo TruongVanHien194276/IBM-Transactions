@@ -1,5 +1,5 @@
 /*
-Tuần 4 - Chạy bộ kiểm thử nghiệm thu end-to-end
+Giai đoạn 4 - Chạy bộ kiểm thử nghiệm thu end-to-end
 
 Phạm vi:
 - ETL batch và validation
@@ -8,8 +8,8 @@ Phạm vi:
 - KPI nghiệp vụ
 - Reporting objects và quyền read-only
 
-Script quét chính xác raw.transactions và dw.fact_transaction. Trên máy hiện
-tại thời gian chạy dự kiến vài phút, tùy cache PostgreSQL.
+Script quét chính xác raw.transactions và dw.fact_transaction
+Trên máy hiệntại thời gian chạy dự kiến vài phút, tùy cache PostgreSQL
 */
 
 \set ON_ERROR_STOP on

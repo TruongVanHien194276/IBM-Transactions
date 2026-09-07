@@ -1,7 +1,7 @@
 /*
-CẢNH BÁO: script tùy chọn, phá hủy toàn bộ dữ liệu DW để chạy lại từ đầu.
-Không chạy trong quy trình bình thường và không chạy nhầm trên production.
-Database nguồn raw.* không bị xóa.
+CẢNH BÁO: script tùy chọn, phá hủy toàn bộ dữ liệu DW để chạy lại từ đầu
+Không chạy trong quy trình bình thường và không chạy nhầm trên production
+Database nguồn raw.* không bị xóa
 */
 
 BEGIN;
