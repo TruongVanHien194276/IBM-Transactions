@@ -1,6 +1,6 @@
 -- IBM AML / Athena KPI starter queries
--- Điều chỉnh tên bảng/cột theo schema thực tế do Glue Crawler tạo.
--- Luôn kiểm tra location và partition trước khi chạy dữ liệu lớn.
+-- Điều chỉnh tên bảng/cột theo schema thực tế do Glue Crawler tạo
+-- Luôn kiểm tra location và partition trước khi chạy dữ liệu lớn
 
 -- 1) Data completeness
 SELECT
@@ -57,4 +57,4 @@ FROM ibm_aml_curated.fact_transaction
 WHERE txn_date BETWEEN DATE '2022-09-01' AND DATE '2022-09-07'
 LIMIT 100;
 
--- Không tạo SUM(amount) xuyên nhiều currency nếu chưa có FX normalization.
+-- Không tạo SUM(amount) xuyên nhiều currency nếu chưa có FX normalization
